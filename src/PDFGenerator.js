@@ -217,21 +217,9 @@ const generateBarcodeDataURL = (data) => {
   }
 };
 
-// Card component helper matching app design: bg-white rounded-xl border border-slate-200 shadow-sm
+// Card component helper - no background, transparent
 const drawCard = (doc, x, y, width, height, fillColor = THEME_COLORS.white, borderColor = THEME_COLORS.slate[200], cornerRadius = 3) => {
-  // Draw rounded rectangle background
-  doc.setFillColor(...fillColor);
-  doc.roundedRect(x, y, width, height, cornerRadius, cornerRadius, 'F');
-  
-  // Draw border
-  doc.setDrawColor(...borderColor);
-  doc.setLineWidth(0.5);
-  doc.roundedRect(x, y, width, height, cornerRadius, cornerRadius, 'S');
-  
-  // Add subtle shadow effect
-  doc.setDrawColor(...THEME_COLORS.slate[100]);
-  doc.setLineWidth(0.2);
-  doc.roundedRect(x + 0.5, y + 0.5, width, height, cornerRadius, cornerRadius, 'S');
+  // No background drawing - completely transparent
 };
 
 // Gradient background helper matching app screens
@@ -286,16 +274,16 @@ const drawSectionHeader = (doc, x, y, width, height, title, subtitle = '', isPic
     drawTripleGradient(doc, x, y, width, height, THEME_COLORS.primary.blue500, THEME_COLORS.primary.blue600, THEME_COLORS.primary.purple600);
   }
   
-  // Text - much smaller and compact
+  // Compact text
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(12);
+  doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
   doc.text(title, x + width / 2, y + height / 2 - 1, { align: 'center' });
   
   if (subtitle) {
-    doc.setFontSize(8);
+    doc.setFontSize(6);
     doc.setFont('helvetica', 'normal');
-    doc.text(subtitle, x + width / 2, y + height / 2 + 5, { align: 'center' });
+    doc.text(subtitle, x + width / 2, y + height / 2 + 3, { align: 'center' });
   }
 };
 
@@ -317,11 +305,55 @@ export const generateBookingPDF = async (jobData, jobId, otp) => {
     }
   }
   
-  // Generate delivery pages
+  // Generate delivery pages - multiple pages per location based on all packaging types
   if (jobData.deliveries && jobData.deliveries.length > 0) {
     for (let i = 0; i < jobData.deliveries.length; i++) {
-      doc.addPage();
-      await generateDeliveryPage(doc, jobData.deliveries[i], i, jobData, jobId);
+      const delivery = jobData.deliveries[i];
+      const goods = jobData.deliveryGoods?.[i];
+      
+      // Generate packaging units array for this delivery
+      const packagingUnits = [];
+      
+      if (goods?.packagingTypes) {
+        const packagingTypes = {
+          pallets: 'Pallet',
+          boxes: 'Box',
+          bags: 'Bag',
+          others: 'Loose Item'
+        };
+        
+        Object.entries(packagingTypes).forEach(([type, label]) => {
+          const pkg = goods.packagingTypes[type];
+          if (pkg && pkg.selected && pkg.quantity) {
+            for (let unitIndex = 0; unitIndex < pkg.quantity; unitIndex++) {
+              packagingUnits.push({
+                type: type,
+                label: label,
+                unitIndex: unitIndex + 1,
+                totalUnits: pkg.quantity,
+                packageData: pkg
+              });
+            }
+          }
+        });
+      }
+      
+      // If no packaging units, create one default page
+      if (packagingUnits.length === 0) {
+        packagingUnits.push({
+          type: 'delivery',
+          label: 'Delivery',
+          unitIndex: 1,
+          totalUnits: 1,
+          packageData: null
+        });
+      }
+      
+      // Generate one page per packaging unit
+      for (let unitIdx = 0; unitIdx < packagingUnits.length; unitIdx++) {
+        doc.addPage();
+        await generateDeliveryPage(doc, delivery, i, jobData, jobId, packagingUnits[unitIdx], packagingUnits.length);
+      }
     }
   }
   
@@ -337,19 +369,19 @@ const generateSummaryPage = async (doc, jobData, jobId, otp, barcodeDataURL) => 
   doc.setFillColor(...THEME_COLORS.slate[50]);
   doc.rect(0, 0, pageWidth, pageHeight, 'F');
   
-  // Compact header - reduced from 50px to 25px
-  drawTripleGradient(doc, 0, 0, pageWidth, 25, THEME_COLORS.primary.blue500, THEME_COLORS.primary.blue600, THEME_COLORS.primary.purple600);
+  // Extra compact header - reduced from 25px to 18px
+  drawTripleGradient(doc, 0, 0, pageWidth, 18, THEME_COLORS.primary.blue500, THEME_COLORS.primary.blue600, THEME_COLORS.primary.purple600);
   
   // Compact header text
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(12);
+  doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
-  doc.text('PHOENIX PRIME SHIPPER - MASTER DOCUMENTATION', pageWidth / 2, 17, { align: 'center' });
+  doc.text('PHOENIX PRIME SHIPPER - MASTER DOCUMENTATION', pageWidth / 2, 12, { align: 'center' });
   
-  let yPos = 35;
+  let yPos = 25;
   
-  // Compact Job Information Card
-  drawCard(doc, 5, yPos, pageWidth - 10, 35, THEME_COLORS.white, THEME_COLORS.slate[200], 2);
+  // Comprehensive Job Information Card
+  drawCard(doc, 5, yPos, pageWidth - 10, 45, THEME_COLORS.white, THEME_COLORS.slate[200], 2);
   yPos += 5;
   
   // Card header
@@ -359,85 +391,159 @@ const generateSummaryPage = async (doc, jobData, jobId, otp, barcodeDataURL) => 
   doc.text('JOB DETAILS', 10, yPos);
   yPos += 8;
   
-  // Compact job info in three columns
+  // Simple two-column layout for better alignment
   doc.setFontSize(7);
-  const col1X = 10, col2X = 70, col3X = 130;
+  const leftCol = 20;
+  const rightCol = 110;
+  const labelWidth = 45;
   
-  // Column 1
+  // Job ID and Driver OTP
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Job ID:', col1X, yPos);
+  doc.text('Job ID:', leftCol, yPos);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(jobId, col1X + 25, yPos);
+  doc.text(jobId, leftCol + labelWidth, yPos);
   
-  // Column 2
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Driver OTP:', col2X, yPos);
+  doc.text('Driver OTP:', rightCol, yPos);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(otp.toString(), col2X + 35, yPos);
-  
-  // Column 3
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Status:', col3X, yPos);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text('Confirmed', col3X + 25, yPos);
+  doc.text(otp.toString(), rightCol + labelWidth, yPos);
   
   yPos += 8;
   
-  // Second row
+  // Date and Time
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Date:', col1X, yPos);
+  doc.text('Date Created:', leftCol, yPos);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(new Date().toLocaleDateString(), col1X + 20, yPos);
-  
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Time:', col2X, yPos);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(new Date().toLocaleTimeString(), col2X + 20, yPos);
+  doc.text(new Date().toLocaleDateString(), leftCol + labelWidth, yPos);
   
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Type:', col3X, yPos);
+  doc.text('Time Created:', rightCol, yPos);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(getJobTypeLabel(jobData.jobType), col3X + 20, yPos);
+  doc.text(new Date().toLocaleTimeString(), rightCol + labelWidth, yPos);
   
-  yPos += 15;
+  yPos += 8;
   
-  // Vehicle & Service Information
-  drawCard(doc, 5, yPos, pageWidth - 10, 25, THEME_COLORS.white, THEME_COLORS.slate[200], 2);
+  // Job Type and Status
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...THEME_COLORS.slate[700]);
+  doc.text('Job Type:', leftCol, yPos);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...THEME_COLORS.slate[600]);
+  doc.text(getJobTypeLabel(jobData.jobType), leftCol + labelWidth, yPos);
+  
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...THEME_COLORS.slate[700]);
+  doc.text('Status:', rightCol, yPos);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...THEME_COLORS.slate[600]);
+  doc.text('Confirmed', rightCol + labelWidth, yPos);
+  
+  yPos += 8;
+  
+  // Locations and Transfer Type
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...THEME_COLORS.slate[700]);
+  doc.text('Total Locations:', leftCol, yPos);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...THEME_COLORS.slate[600]);
+  doc.text(`${(jobData.pickups?.length || 0)}P / ${(jobData.deliveries?.length || 0)}D`, leftCol + labelWidth, yPos);
+  
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...THEME_COLORS.slate[700]);
+  doc.text('Transfer Type:', rightCol, yPos);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...THEME_COLORS.slate[600]);
+  doc.text(jobData.transferType || 'Standard', rightCol + labelWidth, yPos);
+  
+  yPos += 8;
+  
+  // Service Level
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...THEME_COLORS.slate[700]);
+  doc.text('Service Level:', leftCol, yPos);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...THEME_COLORS.slate[600]);
+  doc.text(jobData.isRefrigerated ? 'Refrigerated' : 'Standard', leftCol + labelWidth, yPos);
+  
+  yPos += 12;
+  
+  // Comprehensive Vehicle & Service Information
+  drawCard(doc, 5, yPos, pageWidth - 10, 35, THEME_COLORS.white, THEME_COLORS.slate[200], 2);
   yPos += 5;
   
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...THEME_COLORS.slate[800]);
-  doc.text('VEHICLE & SERVICE', 10, yPos);
+  doc.text('VEHICLE & SERVICE SPECIFICATIONS', 10, yPos);
   yPos += 8;
   
   doc.setFontSize(7);
   const vehicle = jobData.vehicle || {};
-  const vehicleText = `${vehicle.name || 'N/A'} (${vehicle.capacity || 'N/A'}) - ${vehicle.pallets || 'N/A'} pallets, ${vehicle.maxWeight || 'N/A'}t max`;
-  const serviceText = `${jobData.truckBodyType || 'Standard'} | ${jobData.transferType || 'Standard'} | ${jobData.isRefrigerated ? 'Refrigerated' : 'Standard'}`;
   
+  // Vehicle specifications in simple two-column layout
+  // Vehicle and Capacity
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...THEME_COLORS.slate[700]);
+  doc.text('Vehicle:', leftCol, yPos);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(vehicleText, 10, yPos);
-  yPos += 6;
-  doc.text(serviceText, 10, yPos);
-  yPos += 15;
+  doc.text(vehicle.name || 'N/A', leftCol + labelWidth, yPos);
   
-  // Pickup Locations
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...THEME_COLORS.slate[700]);
+  doc.text('Capacity:', rightCol, yPos);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...THEME_COLORS.slate[600]);
+  doc.text(vehicle.capacity || 'N/A', rightCol + labelWidth, yPos);
+  
+  yPos += 8;
+  
+  // Max Weight and Pallet Capacity
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...THEME_COLORS.slate[700]);
+  doc.text('Max Weight:', leftCol, yPos);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...THEME_COLORS.slate[600]);
+  doc.text(`${vehicle.maxWeight || 'N/A'} tonnes`, leftCol + labelWidth, yPos);
+  
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...THEME_COLORS.slate[700]);
+  doc.text('Pallet Capacity:', rightCol, yPos);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...THEME_COLORS.slate[600]);
+  doc.text(`${vehicle.pallets || 'N/A'} pallets`, rightCol + labelWidth, yPos);
+  
+  yPos += 8;
+  
+  // Body Type and Refrigeration
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...THEME_COLORS.slate[700]);
+  doc.text('Body Type:', leftCol, yPos);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...THEME_COLORS.slate[600]);
+  doc.text(jobData.truckBodyType || 'Standard', leftCol + labelWidth, yPos);
+  
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...THEME_COLORS.slate[700]);
+  doc.text('Refrigeration:', rightCol, yPos);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...THEME_COLORS.slate[600]);
+  doc.text(jobData.isRefrigerated ? 'Required' : 'Not Required', rightCol + labelWidth, yPos);
+  
+  yPos += 12;
+  
+  // Comprehensive Pickup Locations with Full Details
   if (jobData.pickups && jobData.pickups.length > 0) {
-    drawCard(doc, 5, yPos, pageWidth - 10, 30 + (jobData.pickups.length * 8), THEME_COLORS.emerald[100], THEME_COLORS.emerald[200], 2);
+    const pickupCardHeight = 40 + (jobData.pickups.length * 25);
+    drawCard(doc, 5, yPos, pageWidth - 10, pickupCardHeight, THEME_COLORS.emerald[100], THEME_COLORS.emerald[200], 2);
     yPos += 5;
     
     doc.setFontSize(9);
@@ -446,27 +552,96 @@ const generateSummaryPage = async (doc, jobData, jobId, otp, barcodeDataURL) => 
     doc.text('PICKUP LOCATIONS', 10, yPos);
     yPos += 8;
     
-    doc.setFontSize(7);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...THEME_COLORS.slate[600]);
+    doc.setFontSize(6);
     
     jobData.pickups.forEach((pickup, index) => {
-      const locationText = `${index + 1}. ${pickup.customerName || 'N/A'} - ${pickup.date || 'N/A'} at ${pickup.time || 'N/A'}`;
-      const addressText = `   ${formatAddress(pickup.address)}`;
-      doc.text(locationText, 10, yPos);
+      // Location header
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...THEME_COLORS.emerald[700]);
+      doc.text(`${index + 1}. ${pickup.customerName || 'N/A'}`, 10, yPos);
       yPos += 6;
-      doc.setTextColor(...THEME_COLORS.slate[500]);
-      doc.text(addressText, 10, yPos);
+      
+      // Detailed location info in columns
+      doc.setFont('helvetica', 'normal');
       doc.setTextColor(...THEME_COLORS.slate[600]);
-      yPos += 8;
+      
+      // Address
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...THEME_COLORS.slate[700]);
+      doc.text('Address:', 15, yPos);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...THEME_COLORS.slate[600]);
+      doc.text(formatAddress(pickup.address), 37, yPos);
+      yPos += 5;
+      
+      // Schedule and contact info
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...THEME_COLORS.slate[700]);
+      doc.text('Schedule:', 15, yPos);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...THEME_COLORS.slate[600]);
+      doc.text(`${pickup.date || 'N/A'} at ${pickup.time || 'N/A'}`, 37, yPos);
+      
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...THEME_COLORS.slate[700]);
+      doc.text('Contact:', 100, yPos);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...THEME_COLORS.slate[600]);
+      doc.text(pickup.recipientMobile || 'N/A', 122, yPos);
+      yPos += 5;
+      
+      // Goods and special requirements
+      const goods = jobData.pickupGoods?.[index];
+      if (goods) {
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...THEME_COLORS.slate[700]);
+        doc.text('Goods:', 15, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...THEME_COLORS.slate[600]);
+        doc.text(goods.description || 'N/A', 32, yPos);
+        
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...THEME_COLORS.slate[700]);
+        doc.text('Method:', 100, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...THEME_COLORS.slate[600]);
+        doc.text(goods.pickupMethod || 'N/A', 122, yPos);
+        yPos += 5;
+        
+        // Packaging summary
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...THEME_COLORS.slate[700]);
+        doc.text('Packaging:', 15, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...THEME_COLORS.slate[600]);
+        const packagingSummary = formatDetailedPackaging(goods.packagingTypes).replace(/\n/g, ' | ');
+        const summaryLines = doc.splitTextToSize(packagingSummary, pageWidth - 60);
+        doc.text(summaryLines, 45, yPos);
+        yPos += summaryLines.length * 4;
+      }
+      
+      // Special instructions
+      if (pickup.instructions) {
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...THEME_COLORS.blue[700]);
+        doc.text('Instructions:', 15, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...THEME_COLORS.blue[600]);
+        const instrLines = doc.splitTextToSize(pickup.instructions, pageWidth - 60);
+        doc.text(instrLines, 50, yPos);
+        yPos += instrLines.length * 4;
+      }
+      
+      yPos += 3; // Space between locations
     });
     
     yPos += 5;
   }
   
-  // Delivery Locations
+  // Comprehensive Delivery Locations with Full Details
   if (jobData.deliveries && jobData.deliveries.length > 0) {
-    drawCard(doc, 5, yPos, pageWidth - 10, 30 + (jobData.deliveries.length * 8), THEME_COLORS.red[100], THEME_COLORS.red[200], 2);
+    const deliveryCardHeight = 40 + (jobData.deliveries.length * 25);
+    drawCard(doc, 5, yPos, pageWidth - 10, deliveryCardHeight, THEME_COLORS.red[100], THEME_COLORS.red[200], 2);
     yPos += 5;
     
     doc.setFontSize(9);
@@ -475,23 +650,225 @@ const generateSummaryPage = async (doc, jobData, jobId, otp, barcodeDataURL) => 
     doc.text('DELIVERY LOCATIONS', 10, yPos);
     yPos += 8;
     
-    doc.setFontSize(7);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...THEME_COLORS.slate[600]);
+    doc.setFontSize(6);
     
     jobData.deliveries.forEach((delivery, index) => {
-      const locationText = `${index + 1}. ${delivery.customerName || 'N/A'} - ${delivery.date || 'N/A'} at ${delivery.time || 'N/A'}`;
-      const addressText = `   ${formatAddress(delivery.address)}`;
-      doc.text(locationText, 10, yPos);
+      // Location header
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...THEME_COLORS.red[700]);
+      doc.text(`${index + 1}. ${delivery.customerName || 'N/A'}`, 10, yPos);
       yPos += 6;
-      doc.setTextColor(...THEME_COLORS.slate[500]);
-      doc.text(addressText, 10, yPos);
+      
+      // Detailed location info in columns
+      doc.setFont('helvetica', 'normal');
       doc.setTextColor(...THEME_COLORS.slate[600]);
-      yPos += 8;
+      
+      // Address
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...THEME_COLORS.slate[700]);
+      doc.text('Address:', 15, yPos);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...THEME_COLORS.slate[600]);
+      doc.text(formatAddress(delivery.address), 40, yPos);
+      yPos += 5;
+      
+      // Schedule and contact info
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...THEME_COLORS.slate[700]);
+      doc.text('Schedule:', 15, yPos);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...THEME_COLORS.slate[600]);
+      doc.text(`${delivery.date || 'N/A'} at ${delivery.time || 'N/A'}`, 37, yPos);
+      
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...THEME_COLORS.slate[700]);
+      doc.text('Trading Hours:', 100, yPos);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...THEME_COLORS.slate[600]);
+      doc.text(delivery.tradingHours || 'N/A', 137, yPos);
+      yPos += 5;
+      
+      // Goods and special requirements
+      const goods = jobData.deliveryGoods?.[index];
+      if (goods) {
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...THEME_COLORS.slate[700]);
+        doc.text('Goods:', 15, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...THEME_COLORS.slate[600]);
+        doc.text(goods.description || 'N/A', 32, yPos);
+        
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...THEME_COLORS.slate[700]);
+        doc.text('Method:', 100, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...THEME_COLORS.slate[600]);
+        doc.text(goods.deliveryMethod || 'N/A', 122, yPos);
+        yPos += 5;
+        
+        // Packaging summary
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...THEME_COLORS.slate[700]);
+        doc.text('Packaging:', 15, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...THEME_COLORS.slate[600]);
+        const packagingSummary = formatDetailedPackaging(goods.packagingTypes).replace(/\n/g, ' | ');
+        const summaryLines = doc.splitTextToSize(packagingSummary, pageWidth - 60);
+        doc.text(summaryLines, 45, yPos);
+        yPos += summaryLines.length * 4;
+      }
+      
+      // Special instructions
+      if (delivery.instructions) {
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...THEME_COLORS.blue[700]);
+        doc.text('Instructions:', 15, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...THEME_COLORS.blue[600]);
+        const instrLines = doc.splitTextToSize(delivery.instructions, pageWidth - 60);
+        doc.text(instrLines, 50, yPos);
+        yPos += instrLines.length * 4;
+      }
+      
+      yPos += 3; // Space between locations
     });
     
     yPos += 5;
   }
+  
+  // Comprehensive Totals and Calculations
+  const totalPickupWeight = jobData.pickupGoods?.reduce((total, goods) => {
+    const pt = goods?.packagingTypes;
+    if (!pt) return total;
+    let weight = 0;
+    if (pt.pallets?.selected && pt.pallets.weight) weight += pt.pallets.weight;
+    if (pt.boxes?.selected && pt.boxes.weight) weight += pt.boxes.weight;
+    if (pt.bags?.selected && pt.bags.weight) weight += pt.bags.weight;
+    if (pt.others?.selected && pt.others.weight) weight += pt.others.weight;
+    return total + weight;
+  }, 0) || 0;
+  
+  const totalDeliveryWeight = jobData.deliveryGoods?.reduce((total, goods) => {
+    const pt = goods?.packagingTypes;
+    if (!pt) return total;
+    let weight = 0;
+    if (pt.pallets?.selected && pt.pallets.weight) weight += pt.pallets.weight;
+    if (pt.boxes?.selected && pt.boxes.weight) weight += pt.boxes.weight;
+    if (pt.bags?.selected && pt.bags.weight) weight += pt.bags.weight;
+    if (pt.others?.selected && pt.others.weight) weight += pt.others.weight;
+    return total + weight;
+  }, 0) || 0;
+  
+  const totalPickupItems = jobData.pickupGoods?.reduce((total, goods) => {
+    const pt = goods?.packagingTypes;
+    if (!pt) return total;
+    let count = 0;
+    if (pt.pallets?.selected && pt.pallets.quantity) count += pt.pallets.quantity;
+    if (pt.boxes?.selected && pt.boxes.quantity) count += pt.boxes.quantity;
+    if (pt.bags?.selected && pt.bags.quantity) count += pt.bags.quantity;
+    if (pt.others?.selected && pt.others.quantity) count += pt.others.quantity;
+    return total + count;
+  }, 0) || 0;
+  
+  const totalDeliveryItems = jobData.deliveryGoods?.reduce((total, goods) => {
+    const pt = goods?.packagingTypes;
+    if (!pt) return total;
+    let count = 0;
+    if (pt.pallets?.selected && pt.pallets.quantity) count += pt.pallets.quantity;
+    if (pt.boxes?.selected && pt.boxes.quantity) count += pt.boxes.quantity;
+    if (pt.bags?.selected && pt.bags.quantity) count += pt.bags.quantity;
+    if (pt.others?.selected && pt.others.quantity) count += pt.others.quantity;
+    return total + count;
+  }, 0) || 0;
+  
+  drawCard(doc, 5, yPos, pageWidth - 10, 35, THEME_COLORS.white, THEME_COLORS.slate[200], 2);
+  yPos += 5;
+  
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...THEME_COLORS.slate[800]);
+  doc.text('SHIPMENT TOTALS & CALCULATIONS', 10, yPos);
+  yPos += 8;
+  
+  doc.setFontSize(7);
+  
+  // Total Weight and Items
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...THEME_COLORS.slate[700]);
+  doc.text('Total Weight:', leftCol, yPos);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...THEME_COLORS.slate[600]);
+  doc.text(`${totalPickupWeight + totalDeliveryWeight}kg`, leftCol + labelWidth, yPos);
+  
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...THEME_COLORS.slate[700]);
+  doc.text('Total Items:', rightCol, yPos);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...THEME_COLORS.slate[600]);
+  doc.text(`${totalPickupItems + totalDeliveryItems} pieces`, rightCol + labelWidth, yPos);
+  
+  yPos += 8;
+  
+  // Total Locations
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...THEME_COLORS.slate[700]);
+  doc.text('Total Locations:', leftCol, yPos);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...THEME_COLORS.slate[600]);
+  doc.text(`${(jobData.pickups?.length || 0) + (jobData.deliveries?.length || 0)}`, leftCol + labelWidth, yPos);
+  
+  yPos += 8;
+  
+  // Pickup breakdown
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...THEME_COLORS.emerald[700]);
+  doc.text('Pickup Weight:', leftCol, yPos);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...THEME_COLORS.emerald[600]);
+  doc.text(`${totalPickupWeight}kg`, leftCol + labelWidth, yPos);
+  
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...THEME_COLORS.emerald[700]);
+  doc.text('Pickup Items:', rightCol, yPos);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...THEME_COLORS.emerald[600]);
+  doc.text(`${totalPickupItems} pieces`, rightCol + labelWidth, yPos);
+  
+  yPos += 8;
+  
+  // Delivery breakdown
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...THEME_COLORS.red[700]);
+  doc.text('Delivery Weight:', leftCol, yPos);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...THEME_COLORS.red[600]);
+  doc.text(`${totalDeliveryWeight}kg`, leftCol + labelWidth, yPos);
+  
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...THEME_COLORS.red[700]);
+  doc.text('Delivery Items:', rightCol, yPos);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...THEME_COLORS.red[600]);
+  doc.text(`${totalDeliveryItems} pieces`, rightCol + labelWidth, yPos);
+  
+  yPos += 8;
+  
+  // Pickup and Delivery Locations
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...THEME_COLORS.emerald[700]);
+  doc.text('Pickup Locations:', leftCol, yPos);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...THEME_COLORS.emerald[600]);
+  doc.text(`${jobData.pickups?.length || 0}`, leftCol + labelWidth, yPos);
+  
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...THEME_COLORS.red[700]);
+  doc.text('Delivery Locations:', rightCol, yPos);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...THEME_COLORS.red[600]);
+  doc.text(`${jobData.deliveries?.length || 0}`, rightCol + labelWidth, yPos);
+  
+  yPos += 15;
   
   // Compact barcode
   if (barcodeDataURL) {
@@ -521,15 +898,15 @@ const generatePickupPage = async (doc, pickup, index, jobData, jobId) => {
   const pageWidth = doc.internal.pageSize.width;
   const pageHeight = doc.internal.pageSize.height;
   
-  // Page background matching app: min-h-screen bg-slate-50
-  doc.setFillColor(...THEME_COLORS.slate[50]);
+  // Clean white page background
+  doc.setFillColor(255, 255, 255);
   doc.rect(0, 0, pageWidth, pageHeight, 'F');
   
   // Compact header - reduced from 45px to 25px
   const title = jobData.pickups.length > 1 ? `PICKUP LOCATION ${index + 1}` : 'PICKUP LOCATION';
-  drawSectionHeader(doc, 0, 0, pageWidth, 25, title, 'Collection Details', true, false);
+  drawSectionHeader(doc, 0, 0, pageWidth, 18, title, 'Collection Details', true, false);
   
-  let yPos = 35;
+  let yPos = 25;
   
   // Compact Customer Information Card
   drawCard(doc, 10, yPos, pageWidth - 20, 45, THEME_COLORS.white, THEME_COLORS.slate[200], 2);
@@ -545,34 +922,35 @@ const generatePickupPage = async (doc, pickup, index, jobData, jobId) => {
   doc.setFontSize(7);
   doc.setFont('helvetica', 'normal');
   
-  // Compact customer info in two columns
-  const col1X = 15, col2X = pageWidth / 2 + 5;
+  // Customer info in two columns
+  const leftCol = 20;
+  const rightCol = 110;
+  const labelWidth = 45;
   
-  // Left column
+  // Customer and Mobile
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Customer:', col1X, yPos);
+  doc.text('Customer:', leftCol, yPos);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(pickup.customerName || 'N/A', col1X + 30, yPos);
+  doc.text(pickup.customerName || 'N/A', leftCol + labelWidth, yPos);
   
-  // Right column
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Mobile:', col2X, yPos);
+  doc.text('Mobile:', rightCol, yPos);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(pickup.recipientMobile || 'N/A', col2X + 25, yPos);
+  doc.text(pickup.recipientMobile || 'N/A', rightCol + labelWidth, yPos);
   
   yPos += 8;
   
   // Address in full width
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Address:', col1X, yPos);
+  doc.text('Address:', leftCol, yPos);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(formatAddress(pickup.address), col1X + 30, yPos);
+  doc.text(formatAddress(pickup.address), leftCol + labelWidth, yPos);
   
   yPos += 15;
   
@@ -589,34 +967,30 @@ const generatePickupPage = async (doc, pickup, index, jobData, jobId) => {
   doc.setFontSize(7);
   doc.setFont('helvetica', 'normal');
   
-  // Compact schedule info in two columns
-  const schedCol1X = 15, schedCol2X = pageWidth / 2 + 5;
-  
-  // Left column
+  // Date and Time
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Date:', schedCol1X, yPos);
+  doc.text('Date:', leftCol, yPos);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(pickup.date || 'N/A', schedCol1X + 20, yPos);
+  doc.text(pickup.date || 'N/A', leftCol + labelWidth, yPos);
   
-  // Right column
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Time:', schedCol2X, yPos);
+  doc.text('Time:', rightCol, yPos);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(pickup.time || 'N/A', schedCol2X + 20, yPos);
+  doc.text(pickup.time || 'N/A', rightCol + labelWidth, yPos);
   
   yPos += 8;
   
-  // Second row
+  // Trading Hours
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Trading Hours:', schedCol1X, yPos);
+  doc.text('Trading Hours:', leftCol, yPos);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(pickup.tradingHours || 'N/A', schedCol1X + 45, yPos);
+  doc.text(pickup.tradingHours || 'N/A', leftCol + labelWidth, yPos);
   
   yPos += 15;
   
@@ -654,54 +1028,115 @@ const generatePickupPage = async (doc, pickup, index, jobData, jobId) => {
     yPos += appointmentLines.length * 4 + 8;
   }
   
-  // Compact Goods Information Card
+  // Comprehensive Goods Information Section
   const goods = jobData.pickupGoods?.[index];
   if (goods) {
-    const cardHeight = 60;
-    drawCard(doc, 10, yPos, pageWidth - 20, cardHeight, THEME_COLORS.white, THEME_COLORS.slate[200], 2);
+    drawCard(doc, 10, yPos, pageWidth - 20, 120, THEME_COLORS.white, THEME_COLORS.slate[200], 2);
     yPos += 8;
     
     doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...THEME_COLORS.slate[800]);
     doc.text('GOODS INFORMATION', 15, yPos);
-    yPos += 10;
+    yPos += 12;
     
     doc.setFontSize(7);
-    doc.setFont('helvetica', 'normal');
+    const leftCol = 20;
+    const rightCol = 110;
+    const labelWidth = 45;
     
-    // Compact goods info in two columns
-    const goodsCol1X = 15, goodsCol2X = pageWidth / 2 + 5;
-    
-    // Left column - Description
+    // Description and Pickup Method
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...THEME_COLORS.slate[700]);
-    doc.text('Description:', goodsCol1X, yPos);
+    doc.text('Description:', leftCol, yPos);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(...THEME_COLORS.slate[600]);
-    const descLines = doc.splitTextToSize(goods.description || 'N/A', (pageWidth / 2) - 40);
-    doc.text(descLines, goodsCol1X + 35, yPos);
+    doc.text(goods.description || 'N/A', leftCol + labelWidth, yPos);
     
-    // Right column - Methods
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...THEME_COLORS.slate[700]);
-    doc.text('Pickup Method:', goodsCol2X, yPos);
+    doc.text('Pickup Method:', rightCol, yPos);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(...THEME_COLORS.slate[600]);
-    doc.text(goods.pickupMethod || 'N/A', goodsCol2X + 40, yPos);
+    doc.text(goods.pickupMethod || 'N/A', rightCol + labelWidth, yPos);
     
-    yPos += Math.max(descLines.length * 4, 8);
+    yPos += 10;
     
-    // Packaging details
+    // Weight and Dimensions
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...THEME_COLORS.slate[700]);
-    doc.text('Packaging:', goodsCol1X, yPos);
+    doc.text('Total Weight:', leftCol, yPos);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(...THEME_COLORS.slate[600]);
-    const packagingLines = doc.splitTextToSize(formatDetailedPackaging(goods.packagingTypes), pageWidth - 40);
-    doc.text(packagingLines, goodsCol1X + 35, yPos);
+    const totalWeight = goods.packagingTypes ? Object.values(goods.packagingTypes).reduce((sum, pkg) => {
+      return sum + (pkg.selected && pkg.weight ? pkg.weight : 0);
+    }, 0) : 0;
+    doc.text(`${totalWeight}kg`, leftCol + labelWidth, yPos);
     
-    yPos += packagingLines.length * 4 + 10;
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...THEME_COLORS.slate[700]);
+    doc.text('Total Items:', rightCol, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...THEME_COLORS.slate[600]);
+    const totalItems = goods.packagingTypes ? Object.values(goods.packagingTypes).reduce((sum, pkg) => {
+      return sum + (pkg.selected && pkg.quantity ? pkg.quantity : 0);
+    }, 0) : 0;
+    doc.text(`${totalItems} pieces`, rightCol + labelWidth, yPos);
+    
+    yPos += 10;
+    
+    // Detailed Packaging Breakdown
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...THEME_COLORS.slate[700]);
+    doc.text('PACKAGING DETAILS:', leftCol, yPos);
+    yPos += 8;
+    
+    if (goods.packagingTypes) {
+      const packagingTypes = ['pallets', 'boxes', 'bags', 'others'];
+      const packagingLabels = {
+        pallets: 'Pallets',
+        boxes: 'Boxes',
+        bags: 'Bags',
+        others: 'Loose Items'
+      };
+      
+      packagingTypes.forEach(type => {
+        const pkg = goods.packagingTypes[type];
+        if (pkg && pkg.selected) {
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(...THEME_COLORS.emerald[700]);
+          doc.text(`${packagingLabels[type]}:`, leftCol + 5, yPos);
+          
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(...THEME_COLORS.slate[600]);
+          let details = [];
+          if (pkg.quantity) details.push(`${pkg.quantity} units`);
+          if (pkg.weight) details.push(`${pkg.weight}kg`);
+          if (pkg.dimensions) details.push(`${pkg.dimensions}`);
+          if (pkg.secured) details.push('Secured');
+          if (pkg.fragile) details.push('Fragile');
+          
+          doc.text(details.join(' • '), leftCol + 35, yPos);
+          yPos += 7;
+        }
+      });
+    }
+    
+    yPos += 5;
+    
+    // Special Instructions
+    if (goods.pickupInstructions) {
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...THEME_COLORS.blue[700]);
+      doc.text('Special Instructions:', leftCol, yPos);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...THEME_COLORS.slate[600]);
+      const instructionLines = doc.splitTextToSize(goods.pickupInstructions, pageWidth - 80);
+      doc.text(instructionLines, leftCol + labelWidth, yPos);
+      yPos += instructionLines.length * 4;
+    }
+    
+    yPos += 10;
   }
   
   // Compact QR Code
@@ -726,32 +1161,114 @@ const generatePickupPage = async (doc, pickup, index, jobData, jobId) => {
     console.error('QR code generation failed:', error);
   }
   
-  // Footer with emerald gradient matching app
-  drawGradientBackground(doc, 0, pageHeight - 25, pageWidth, 25, [THEME_COLORS.emerald[500], THEME_COLORS.emerald[600]]);
-  doc.setFontSize(9);
+  // Compact footer with emerald gradient
+  drawGradientBackground(doc, 0, pageHeight - 18, pageWidth, 18, [THEME_COLORS.emerald[500], THEME_COLORS.emerald[600]]);
+  doc.setFontSize(7);
   doc.setTextColor(255, 255, 255);
-  doc.text('Phoenix Prime Shipper - Pickup Documentation', pageWidth / 2, pageHeight - 15, { align: 'center' });
-  doc.setFontSize(8);
-  doc.text(`Job ID: ${jobId} | Location ${index + 1}`, pageWidth / 2, pageHeight - 7, { align: 'center' });
+  doc.text('Phoenix Prime Shipper - Pickup Documentation', pageWidth / 2, pageHeight - 11, { align: 'center' });
+  doc.setFontSize(6);
+  doc.text(`Job ID: ${jobId} | Location ${index + 1}`, pageWidth / 2, pageHeight - 5, { align: 'center' });
 };
 
-// Generate comprehensive delivery page matching app screens
-const generateDeliveryPage = async (doc, delivery, index, jobData, jobId) => {
+// Generate comprehensive delivery page with packaging-based pagination
+const generateDeliveryPage = async (doc, delivery, index, jobData, jobId, packagingUnit, totalUnits = 1) => {
   const pageWidth = doc.internal.pageSize.width;
   const pageHeight = doc.internal.pageSize.height;
   
-  // Page background matching app: min-h-screen bg-slate-50
-  doc.setFillColor(...THEME_COLORS.slate[50]);
+  // Clean white page background
+  doc.setFillColor(255, 255, 255);
   doc.rect(0, 0, pageWidth, pageHeight, 'F');
   
-  // Compact header - reduced from 45px to 25px
-  const title = jobData.deliveries.length > 1 ? `DELIVERY LOCATION ${index + 1}` : 'DELIVERY LOCATION';
-  drawSectionHeader(doc, 0, 0, pageWidth, 25, title, 'Drop-off Details', false, true);
+  // Header with packaging unit information
+  const locationTitle = jobData.deliveries.length > 1 ? `DELIVERY LOCATION ${index + 1}` : 'DELIVERY LOCATION';
+  const packageTitle = totalUnits > 1 
+    ? `${packagingUnit.label.toUpperCase()} ${packagingUnit.unitIndex} OF ${packagingUnit.totalUnits}` 
+    : 'DELIVERY DETAILS';
+  drawSectionHeader(doc, 0, 0, pageWidth, 18, locationTitle, packageTitle, false, true);
   
-  let yPos = 35;
+  let yPos = 25;
   
-  // Compact Customer Information Card
-  drawCard(doc, 10, yPos, pageWidth - 20, 35, THEME_COLORS.white, THEME_COLORS.slate[200], 2);
+  // Packaging Unit Information Section (if multiple units)
+  if (totalUnits > 1) {
+    drawCard(doc, 10, yPos, pageWidth - 20, 35, THEME_COLORS.white, THEME_COLORS.slate[200], 2);
+    yPos += 8;
+    
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...THEME_COLORS.red[800]);
+    doc.text('PACKAGING UNIT INFORMATION', 15, yPos);
+    yPos += 10;
+    
+    doc.setFontSize(7);
+    const leftCol = 20;
+    const rightCol = 110;
+    const labelWidth = 45;
+    
+    // Package unit details
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...THEME_COLORS.slate[700]);
+    doc.text('Unit Type:', leftCol, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...THEME_COLORS.slate[600]);
+    doc.text(packagingUnit.label, leftCol + labelWidth, yPos);
+    
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...THEME_COLORS.slate[700]);
+    doc.text('Unit Number:', rightCol, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...THEME_COLORS.slate[600]);
+    doc.text(`${packagingUnit.unitIndex} of ${packagingUnit.totalUnits}`, rightCol + labelWidth, yPos);
+    
+    yPos += 8;
+    
+    // Package specific details
+    if (packagingUnit.packageData) {
+      const pkg = packagingUnit.packageData;
+      
+      // Weight per unit
+      if (pkg.weight) {
+        const weightPerUnit = Math.round(pkg.weight / packagingUnit.totalUnits * 100) / 100;
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...THEME_COLORS.slate[700]);
+        doc.text('Unit Weight:', leftCol, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...THEME_COLORS.slate[600]);
+        doc.text(`~${weightPerUnit}kg`, leftCol + labelWidth, yPos);
+      }
+      
+      // Dimensions
+      if (pkg.dimensions) {
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...THEME_COLORS.slate[700]);
+        doc.text('Dimensions:', rightCol, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...THEME_COLORS.slate[600]);
+        doc.text(pkg.dimensions, rightCol + labelWidth, yPos);
+      }
+      
+      yPos += 8;
+      
+      // Special attributes
+      const attributes = [];
+      if (pkg.secured) attributes.push('Secured');
+      if (pkg.fragile) attributes.push('Fragile');
+      if (pkg.hazardous) attributes.push('Hazardous');
+      
+      if (attributes.length > 0) {
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...THEME_COLORS.slate[700]);
+        doc.text('Special Handling:', leftCol, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...THEME_COLORS.red[600]);
+        doc.text(attributes.join(', '), leftCol + labelWidth, yPos);
+      }
+    }
+    
+    yPos += 15;
+  }
+  
+  // Customer Information Section
+  drawCard(doc, 10, yPos, pageWidth - 20, 45, THEME_COLORS.white, THEME_COLORS.slate[200], 2);
   yPos += 8;
   
   doc.setFontSize(9);
@@ -761,32 +1278,38 @@ const generateDeliveryPage = async (doc, delivery, index, jobData, jobId) => {
   yPos += 10;
   
   doc.setFontSize(7);
-  doc.setFont('helvetica', 'normal');
+  const leftCol = 20;
+  const rightCol = 110;
+  const labelWidth = 45;
   
-  // Compact customer info - customer name and address
-  const col1X = 15;
-  
-  // Customer name
+  // Customer and Contact
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Customer:', col1X, yPos);
+  doc.text('Customer:', leftCol, yPos);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(delivery.customerName || 'N/A', col1X + 30, yPos);
+  doc.text(delivery.customerName || 'N/A', leftCol + labelWidth, yPos);
+  
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...THEME_COLORS.slate[700]);
+  doc.text('Contact:', rightCol, yPos);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...THEME_COLORS.slate[600]);
+  doc.text(delivery.contactNumber || 'N/A', rightCol + labelWidth, yPos);
   
   yPos += 8;
   
   // Address in full width
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Address:', col1X, yPos);
+  doc.text('Address:', leftCol, yPos);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(formatAddress(delivery.address), col1X + 30, yPos);
+  doc.text(formatAddress(delivery.address), leftCol + labelWidth, yPos);
   
-  yPos += 8;
+  yPos += 15;
   
-  // Compact Schedule Information Card
+  // Schedule Information Section
   drawCard(doc, 10, yPos, pageWidth - 20, 35, THEME_COLORS.white, THEME_COLORS.slate[200], 2);
   yPos += 8;
   
@@ -797,40 +1320,35 @@ const generateDeliveryPage = async (doc, delivery, index, jobData, jobId) => {
   yPos += 10;
   
   doc.setFontSize(7);
-  doc.setFont('helvetica', 'normal');
   
-  // Compact schedule info in two columns
-  const schedCol1X = 15, schedCol2X = pageWidth / 2 + 5;
-  
-  // Left column
+  // Date and Time
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Date:', schedCol1X, yPos);
+  doc.text('Date:', leftCol, yPos);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(delivery.date || 'N/A', schedCol1X + 20, yPos);
+  doc.text(delivery.date || 'N/A', leftCol + labelWidth, yPos);
   
-  // Right column
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Time:', schedCol2X, yPos);
+  doc.text('Time:', rightCol, yPos);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(delivery.time || 'N/A', schedCol2X + 20, yPos);
+  doc.text(delivery.time || 'N/A', rightCol + labelWidth, yPos);
   
   yPos += 8;
   
-  // Second row
+  // Trading Hours
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Trading Hours:', schedCol1X, yPos);
+  doc.text('Trading Hours:', leftCol, yPos);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(delivery.tradingHours || 'N/A', schedCol1X + 45, yPos);
+  doc.text(delivery.tradingHours || 'N/A', leftCol + labelWidth, yPos);
   
-  yPos += 8;
+  yPos += 15;
   
-  // Compact Instructions Card
+  // Instructions Section
   if (delivery.instructions) {
     drawCard(doc, 10, yPos, pageWidth - 20, 20, THEME_COLORS.blue[50], THEME_COLORS.blue[200], 2);
     
@@ -847,7 +1365,7 @@ const generateDeliveryPage = async (doc, delivery, index, jobData, jobId) => {
     yPos += instructionLines.length * 4 + 8;
   }
   
-  // Compact Appointment Details Card
+  // Appointment Details Section
   if (delivery.appointmentDetails) {
     drawCard(doc, 10, yPos, pageWidth - 20, 20, THEME_COLORS.purple[50], THEME_COLORS.purple[200], 2);
     
@@ -864,86 +1382,223 @@ const generateDeliveryPage = async (doc, delivery, index, jobData, jobId) => {
     yPos += appointmentLines.length * 4 + 8;
   }
   
-  // Compact Goods Information Card
+  // Comprehensive Goods Information Section
   const goods = jobData.deliveryGoods?.[index];
   if (goods) {
-    const cardHeight = 60;
-    drawCard(doc, 10, yPos, pageWidth - 20, cardHeight, THEME_COLORS.white, THEME_COLORS.slate[200], 2);
+    drawCard(doc, 10, yPos, pageWidth - 20, 140, THEME_COLORS.white, THEME_COLORS.slate[200], 2);
     yPos += 8;
     
     doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...THEME_COLORS.slate[800]);
     doc.text('GOODS INFORMATION', 15, yPos);
-    yPos += 10;
+    yPos += 12;
     
     doc.setFontSize(7);
-    doc.setFont('helvetica', 'normal');
     
-    // Compact goods info in two columns
-    const goodsCol1X = 15, goodsCol2X = pageWidth / 2 + 5;
-    
-    // Left column - Description
+    // Description and Delivery Method
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...THEME_COLORS.slate[700]);
-    doc.text('Description:', goodsCol1X, yPos);
+    doc.text('Description:', leftCol, yPos);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(...THEME_COLORS.slate[600]);
-    const descLines = doc.splitTextToSize(goods.description || 'N/A', (pageWidth / 2) - 40);
-    doc.text(descLines, goodsCol1X + 35, yPos);
+    doc.text(goods.description || 'N/A', leftCol + labelWidth, yPos);
     
-    // Right column - Methods
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...THEME_COLORS.slate[700]);
-    doc.text('Delivery Method:', goodsCol2X, yPos);
+    doc.text('Delivery Method:', rightCol, yPos);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(...THEME_COLORS.slate[600]);
-    doc.text(goods.deliveryMethod || 'N/A', goodsCol2X + 45, yPos);
+    doc.text(goods.deliveryMethod || 'N/A', rightCol + labelWidth, yPos);
     
-    yPos += Math.max(descLines.length * 4, 8);
+    yPos += 10;
     
-    // Packaging details
+    // Current Packaging Unit Information (if multiple units)
+    if (totalUnits > 1 && packagingUnit.packageData) {
+      const pkg = packagingUnit.packageData;
+      
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...THEME_COLORS.red[700]);
+      doc.text(`THIS ${packagingUnit.label.toUpperCase()}:`, leftCol, yPos);
+      yPos += 8;
+      
+      // Unit weight
+      if (pkg.weight) {
+        const unitWeight = Math.round(pkg.weight / packagingUnit.totalUnits * 100) / 100;
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...THEME_COLORS.slate[700]);
+        doc.text('Weight:', leftCol + 5, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...THEME_COLORS.slate[600]);
+        doc.text(`~${unitWeight}kg`, leftCol + 35, yPos);
+      }
+      
+      // Unit dimensions
+      if (pkg.dimensions) {
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...THEME_COLORS.slate[700]);
+        doc.text('Dimensions:', rightCol, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...THEME_COLORS.slate[600]);
+        doc.text(pkg.dimensions, rightCol + labelWidth, yPos);
+      }
+      
+      yPos += 8;
+      
+      // Special characteristics
+      const characteristics = [];
+      if (pkg.secured) characteristics.push('Secured');
+      if (pkg.fragile) characteristics.push('Fragile');
+      if (pkg.hazardous) characteristics.push('Hazardous');
+      if (pkg.temperature) characteristics.push(`${pkg.temperature}°C`);
+      
+      if (characteristics.length > 0) {
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...THEME_COLORS.slate[700]);
+        doc.text('Characteristics:', leftCol + 5, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...THEME_COLORS.red[600]);
+        doc.text(characteristics.join(' • '), leftCol + 55, yPos);
+        yPos += 8;
+      }
+      
+      yPos += 2;
+    }
+    
+    // Total Weight and Items
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...THEME_COLORS.slate[700]);
-    doc.text('Packaging:', goodsCol1X, yPos);
+    doc.text('Total Weight:', leftCol, yPos);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(...THEME_COLORS.slate[600]);
-    const packagingLines = doc.splitTextToSize(formatDetailedPackaging(goods.packagingTypes), pageWidth - 40);
-    doc.text(packagingLines, goodsCol1X + 35, yPos);
+    const totalWeight = goods.packagingTypes ? Object.values(goods.packagingTypes).reduce((sum, pkg) => {
+      return sum + (pkg.selected && pkg.weight ? pkg.weight : 0);
+    }, 0) : 0;
+    doc.text(`${totalWeight}kg`, leftCol + labelWidth, yPos);
     
-    yPos += packagingLines.length * 4 + 10;
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...THEME_COLORS.slate[700]);
+    doc.text('Total Items:', rightCol, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...THEME_COLORS.slate[600]);
+    const totalItems = goods.packagingTypes ? Object.values(goods.packagingTypes).reduce((sum, pkg) => {
+      return sum + (pkg.selected && pkg.quantity ? pkg.quantity : 0);
+    }, 0) : 0;
+    doc.text(`${totalItems} pieces`, rightCol + labelWidth, yPos);
+    
+    yPos += 10;
+    
+    // Detailed Packaging Breakdown
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...THEME_COLORS.slate[700]);
+    doc.text('PACKAGING DETAILS:', leftCol, yPos);
+    yPos += 8;
+    
+    if (goods.packagingTypes) {
+      const packagingTypes = ['pallets', 'boxes', 'bags', 'others'];
+      const packagingLabels = {
+        pallets: 'Pallets',
+        boxes: 'Boxes',
+        bags: 'Bags',
+        others: 'Loose Items'
+      };
+      
+      packagingTypes.forEach(type => {
+        const pkg = goods.packagingTypes[type];
+        if (pkg && pkg.selected) {
+          // Highlight current packaging unit
+          const isCurrentUnit = packagingUnit.type === type;
+          
+          doc.setFont('helvetica', 'bold');
+          if (isCurrentUnit) {
+            doc.setTextColor(...THEME_COLORS.red[700]);
+          } else {
+            doc.setTextColor(...THEME_COLORS.slate[700]);
+          }
+          let labelText = `${packagingLabels[type]}:`;
+          if (isCurrentUnit && totalUnits > 1) {
+            labelText += ` → CURRENT UNIT`;
+          }
+          doc.text(labelText, leftCol + 5, yPos);
+          
+          doc.setFont('helvetica', 'normal');
+          if (isCurrentUnit) {
+            doc.setTextColor(...THEME_COLORS.red[600]);
+          } else {
+            doc.setTextColor(...THEME_COLORS.slate[600]);
+          }
+          let details = [];
+          if (pkg.quantity) details.push(`${pkg.quantity} units`);
+          if (pkg.weight) details.push(`${pkg.weight}kg`);
+          if (pkg.dimensions) details.push(`${pkg.dimensions}`);
+          if (pkg.secured) details.push('Secured');
+          if (pkg.fragile) details.push('Fragile');
+          if (pkg.hazardous) details.push('Hazardous');
+          
+          doc.text(details.join(' • '), leftCol + 35, yPos);
+          yPos += 7;
+        }
+      });
+    }
+    
+    yPos += 5;
+    
+    // Special Instructions
+    if (goods.deliveryInstructions) {
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...THEME_COLORS.blue[700]);
+      doc.text('Special Instructions:', leftCol, yPos);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...THEME_COLORS.slate[600]);
+      const instructionLines = doc.splitTextToSize(goods.deliveryInstructions, pageWidth - 80);
+      doc.text(instructionLines, leftCol + labelWidth, yPos);
+      yPos += instructionLines.length * 4;
+    }
+    
+    yPos += 10;
   }
   
-  // Compact QR Code
+  // QR Code with Packaging Unit Information
   try {
     const qrData = JSON.stringify({
       type: 'DELIVERY',
       jobId: jobId,
       locationIndex: index + 1,
+      packagingType: packagingUnit.type,
+      packagingLabel: packagingUnit.label,
+      unitNumber: packagingUnit.unitIndex,
+      totalUnits: packagingUnit.totalUnits,
       customer: delivery.customerName,
       date: delivery.date,
       time: delivery.time
     });
     const qrCodeDataURL = await generateQRCodeDataURL(qrData);
     if (qrCodeDataURL) {
-      // Compact QR code positioned in top right
+      // QR code positioned in top right
       doc.addImage(qrCodeDataURL, 'PNG', pageWidth - 60, 35, 50, 50);
       doc.setFontSize(6);
       doc.setTextColor(...THEME_COLORS.slate[500]);
-      doc.text('Scan for verification', pageWidth - 35, 90, { align: 'center' });
+      if (totalUnits > 1) {
+        doc.text(`${packagingUnit.label} ${packagingUnit.unitIndex}/${packagingUnit.totalUnits}`, pageWidth - 35, 90, { align: 'center' });
+      } else {
+        doc.text('Scan for verification', pageWidth - 35, 90, { align: 'center' });
+      }
     }
   } catch (error) {
     console.error('QR code generation failed:', error);
   }
   
-  // Footer with red gradient matching app
-  drawGradientBackground(doc, 0, pageHeight - 25, pageWidth, 25, [THEME_COLORS.red[500], THEME_COLORS.red[600]]);
+  // Compact footer with red gradient
+  drawGradientBackground(doc, 0, pageHeight - 18, pageWidth, 18, [THEME_COLORS.red[500], THEME_COLORS.red[600]]);
   
-  doc.setFontSize(9);
+  doc.setFontSize(7);
   doc.setTextColor(255, 255, 255);
-  doc.text('Phoenix Prime Shipper - Delivery Documentation', pageWidth / 2, pageHeight - 15, { align: 'center' });
-  doc.setFontSize(8);
-  doc.text(`Job ID: ${jobId} | Location ${index + 1}`, pageWidth / 2, pageHeight - 7, { align: 'center' });
+  doc.text('Phoenix Prime Shipper - Delivery Documentation', pageWidth / 2, pageHeight - 11, { align: 'center' });
+  doc.setFontSize(6);
+  const footerText = totalUnits > 1 
+    ? `Job ID: ${jobId} | Location ${index + 1} | ${packagingUnit.label} ${packagingUnit.unitIndex}/${packagingUnit.totalUnits}`
+    : `Job ID: ${jobId} | Location ${index + 1}`;
+  doc.text(footerText, pageWidth / 2, pageHeight - 5, { align: 'center' });
 };
 
 // Export function to download PDF
