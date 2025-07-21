@@ -217,9 +217,16 @@ const generateBarcodeDataURL = (data) => {
   }
 };
 
-// Card component helper - no background, transparent
+// Card component helper with proper background and border
 const drawCard = (doc, x, y, width, height, fillColor = THEME_COLORS.white, borderColor = THEME_COLORS.slate[200], cornerRadius = 3) => {
-  // No background drawing - completely transparent
+  // Draw card background
+  doc.setFillColor(...fillColor);
+  doc.roundedRect(x, y, width, height, cornerRadius, cornerRadius, 'F');
+  
+  // Draw border
+  doc.setDrawColor(...borderColor);
+  doc.setLineWidth(0.5);
+  doc.roundedRect(x, y, width, height, cornerRadius, cornerRadius, 'S');
 };
 
 // Gradient background helper matching app screens
@@ -274,16 +281,16 @@ const drawSectionHeader = (doc, x, y, width, height, title, subtitle = '', isPic
     drawTripleGradient(doc, x, y, width, height, THEME_COLORS.primary.blue500, THEME_COLORS.primary.blue600, THEME_COLORS.primary.purple600);
   }
   
-  // Compact text
+  // Standardized text positioning for 25px height
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
-  doc.text(title, x + width / 2, y + height / 2 - 1, { align: 'center' });
+  doc.text(title, x + width / 2, y + height / 2 - 2, { align: 'center' });
   
   if (subtitle) {
     doc.setFontSize(6);
     doc.setFont('helvetica', 'normal');
-    doc.text(subtitle, x + width / 2, y + height / 2 + 3, { align: 'center' });
+    doc.text(subtitle, x + width / 2, y + height / 2 + 6, { align: 'center' });
   }
 };
 
@@ -291,17 +298,41 @@ const drawSectionHeader = (doc, x, y, width, height, title, subtitle = '', isPic
 export const generateBookingPDF = async (jobData, jobId, otp) => {
   const doc = new jsPDF();
   
+  // Calculate total pages for proper numbering
+  let totalPages = 1; // Summary page
+  totalPages += jobData.pickups?.length || 0; // Pickup pages
+  
+  // Calculate delivery pages based on packaging units
+  if (jobData.deliveries && jobData.deliveries.length > 0) {
+    jobData.deliveries.forEach((delivery, i) => {
+      const goods = jobData.deliveryGoods?.[i];
+      let packagingUnitCount = 0;
+      
+      if (goods?.packagingTypes) {
+        const packagingTypes = ['pallets', 'boxes', 'bags', 'others'];
+        packagingTypes.forEach(type => {
+          const pkg = goods.packagingTypes[type];
+          if (pkg && pkg.selected && pkg.quantity) {
+            packagingUnitCount += pkg.quantity;
+          }
+        });
+      }
+      
+      totalPages += Math.max(packagingUnitCount, 1); // At least 1 page per delivery
+    });
+  }
+  
   // Generate barcodes and QR codes
   const barcodeDataURL = generateBarcodeDataURL(jobId);
   
   // Generate summary page
-  await generateSummaryPage(doc, jobData, jobId, otp, barcodeDataURL);
+  await generateSummaryPage(doc, jobData, jobId, otp, barcodeDataURL, totalPages);
   
   // Generate pickup pages
   if (jobData.pickups && jobData.pickups.length > 0) {
     for (let i = 0; i < jobData.pickups.length; i++) {
       doc.addPage();
-      await generatePickupPage(doc, jobData.pickups[i], i, jobData, jobId);
+      await generatePickupPage(doc, jobData.pickups[i], i, jobData, jobId, totalPages);
     }
   }
   
@@ -352,7 +383,7 @@ export const generateBookingPDF = async (jobData, jobId, otp) => {
       // Generate one page per packaging unit
       for (let unitIdx = 0; unitIdx < packagingUnits.length; unitIdx++) {
         doc.addPage();
-        await generateDeliveryPage(doc, delivery, i, jobData, jobId, packagingUnits[unitIdx], packagingUnits.length);
+        await generateDeliveryPage(doc, delivery, i, jobData, jobId, packagingUnits[unitIdx], packagingUnits.length, totalPages);
       }
     }
   }
@@ -361,7 +392,7 @@ export const generateBookingPDF = async (jobData, jobId, otp) => {
 };
 
 // Generate compact master documentation page
-const generateSummaryPage = async (doc, jobData, jobId, otp, barcodeDataURL) => {
+const generateSummaryPage = async (doc, jobData, jobId, otp, barcodeDataURL, totalPages) => {
   const pageWidth = doc.internal.pageSize.width;
   const pageHeight = doc.internal.pageSize.height;
   
@@ -369,16 +400,16 @@ const generateSummaryPage = async (doc, jobData, jobId, otp, barcodeDataURL) => 
   doc.setFillColor(...THEME_COLORS.slate[50]);
   doc.rect(0, 0, pageWidth, pageHeight, 'F');
   
-  // Extra compact header - reduced from 25px to 18px
-  drawTripleGradient(doc, 0, 0, pageWidth, 18, THEME_COLORS.primary.blue500, THEME_COLORS.primary.blue600, THEME_COLORS.primary.purple600);
+  // Standardized header height
+  drawTripleGradient(doc, 0, 0, pageWidth, 25, THEME_COLORS.primary.blue500, THEME_COLORS.primary.blue600, THEME_COLORS.primary.purple600);
   
   // Compact header text
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
-  doc.text('PHOENIX PRIME SHIPPER - MASTER DOCUMENTATION', pageWidth / 2, 12, { align: 'center' });
+  doc.text('PHOENIX PRIME SHIPPER - MASTER DOCUMENTATION', pageWidth / 2, 15, { align: 'center' });
   
-  let yPos = 25;
+  let yPos = 30;
   
   // Comprehensive Job Information Card
   drawCard(doc, 5, yPos, pageWidth - 10, 45, THEME_COLORS.white, THEME_COLORS.slate[200], 2);
@@ -571,7 +602,9 @@ const generateSummaryPage = async (doc, jobData, jobId, otp, barcodeDataURL) => 
       doc.text('Address:', 15, yPos);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(...THEME_COLORS.slate[600]);
-      doc.text(formatAddress(pickup.address), 37, yPos);
+      const addressLines = doc.splitTextToSize(formatAddress(pickup.address), pageWidth - 80);
+      doc.text(addressLines, 37, yPos);
+      yPos += (addressLines.length - 1) * 4; // Adjust for multi-line addresses
       yPos += 5;
       
       // Schedule and contact info
@@ -669,7 +702,9 @@ const generateSummaryPage = async (doc, jobData, jobId, otp, barcodeDataURL) => 
       doc.text('Address:', 15, yPos);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(...THEME_COLORS.slate[600]);
-      doc.text(formatAddress(delivery.address), 40, yPos);
+      const deliveryAddressLines = doc.splitTextToSize(formatAddress(delivery.address), pageWidth - 85);
+      doc.text(deliveryAddressLines, 40, yPos);
+      yPos += (deliveryAddressLines.length - 1) * 4; // Adjust for multi-line addresses
       yPos += 5;
       
       // Schedule and contact info
@@ -890,11 +925,11 @@ const generateSummaryPage = async (doc, jobData, jobId, otp, barcodeDataURL) => 
   doc.setTextColor(255, 255, 255);
   doc.text('Generated by Phoenix Prime Shipper', pageWidth / 2, pageHeight - 15, { align: 'center' });
   doc.setFontSize(8);
-  doc.text(`Page 1 of ${1 + (jobData.pickups?.length || 0) + (jobData.deliveries?.length || 0)}`, pageWidth / 2, pageHeight - 7, { align: 'center' });
+  doc.text(`Page 1 of ${totalPages}`, pageWidth / 2, pageHeight - 7, { align: 'center' });
 };
 
 // Generate comprehensive pickup page matching app screens
-const generatePickupPage = async (doc, pickup, index, jobData, jobId) => {
+const generatePickupPage = async (doc, pickup, index, jobData, jobId, totalPages) => {
   const pageWidth = doc.internal.pageSize.width;
   const pageHeight = doc.internal.pageSize.height;
   
@@ -902,11 +937,11 @@ const generatePickupPage = async (doc, pickup, index, jobData, jobId) => {
   doc.setFillColor(255, 255, 255);
   doc.rect(0, 0, pageWidth, pageHeight, 'F');
   
-  // Compact header - reduced from 45px to 25px
+  // Standardized header height
   const title = jobData.pickups.length > 1 ? `PICKUP LOCATION ${index + 1}` : 'PICKUP LOCATION';
-  drawSectionHeader(doc, 0, 0, pageWidth, 18, title, 'Collection Details', true, false);
+  drawSectionHeader(doc, 0, 0, pageWidth, 25, title, 'Collection Details', true, false);
   
-  let yPos = 25;
+  let yPos = 30;
   
   // Compact Customer Information Card
   drawCard(doc, 10, yPos, pageWidth - 20, 45, THEME_COLORS.white, THEME_COLORS.slate[200], 2);
@@ -950,7 +985,9 @@ const generatePickupPage = async (doc, pickup, index, jobData, jobId) => {
   doc.text('Address:', leftCol, yPos);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(formatAddress(pickup.address), leftCol + labelWidth, yPos);
+  const pickupAddressLines = doc.splitTextToSize(formatAddress(pickup.address), pageWidth - 90);
+  doc.text(pickupAddressLines, leftCol + labelWidth, yPos);
+  yPos += (pickupAddressLines.length - 1) * 4; // Adjust for multi-line addresses
   
   yPos += 15;
   
@@ -1167,11 +1204,12 @@ const generatePickupPage = async (doc, pickup, index, jobData, jobId) => {
   doc.setTextColor(255, 255, 255);
   doc.text('Phoenix Prime Shipper - Pickup Documentation', pageWidth / 2, pageHeight - 11, { align: 'center' });
   doc.setFontSize(6);
-  doc.text(`Job ID: ${jobId} | Location ${index + 1}`, pageWidth / 2, pageHeight - 5, { align: 'center' });
+  const currentPage = 1 + (index + 1); // Summary page + pickup page number
+  doc.text(`Job ID: ${jobId} | Location ${index + 1} | Page ${currentPage} of ${totalPages}`, pageWidth / 2, pageHeight - 5, { align: 'center' });
 };
 
 // Generate comprehensive delivery page with packaging-based pagination
-const generateDeliveryPage = async (doc, delivery, index, jobData, jobId, packagingUnit, totalUnits = 1) => {
+const generateDeliveryPage = async (doc, delivery, index, jobData, jobId, packagingUnit, totalUnits = 1, totalPages) => {
   const pageWidth = doc.internal.pageSize.width;
   const pageHeight = doc.internal.pageSize.height;
   
@@ -1184,9 +1222,9 @@ const generateDeliveryPage = async (doc, delivery, index, jobData, jobId, packag
   const packageTitle = totalUnits > 1 
     ? `${packagingUnit.label.toUpperCase()} ${packagingUnit.unitIndex} OF ${packagingUnit.totalUnits}` 
     : 'DELIVERY DETAILS';
-  drawSectionHeader(doc, 0, 0, pageWidth, 18, locationTitle, packageTitle, false, true);
+  drawSectionHeader(doc, 0, 0, pageWidth, 25, locationTitle, packageTitle, false, true);
   
-  let yPos = 25;
+  let yPos = 30;
   
   // Packaging Unit Information Section (if multiple units)
   if (totalUnits > 1) {
@@ -1305,7 +1343,9 @@ const generateDeliveryPage = async (doc, delivery, index, jobData, jobId, packag
   doc.text('Address:', leftCol, yPos);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(formatAddress(delivery.address), leftCol + labelWidth, yPos);
+  const deliveryPageAddressLines = doc.splitTextToSize(formatAddress(delivery.address), pageWidth - 90);
+  doc.text(deliveryPageAddressLines, leftCol + labelWidth, yPos);
+  yPos += (deliveryPageAddressLines.length - 1) * 4; // Adjust for multi-line addresses
   
   yPos += 15;
   
@@ -1595,9 +1635,32 @@ const generateDeliveryPage = async (doc, delivery, index, jobData, jobId, packag
   doc.setTextColor(255, 255, 255);
   doc.text('Phoenix Prime Shipper - Delivery Documentation', pageWidth / 2, pageHeight - 11, { align: 'center' });
   doc.setFontSize(6);
+  
+  // Calculate current page number (summary + pickups + delivery pages)
+  let currentPage = 1 + (jobData.pickups?.length || 0); // Summary + all pickup pages
+  
+  // Add previous delivery pages
+  for (let i = 0; i < index; i++) {
+    const prevGoods = jobData.deliveryGoods?.[i];
+    if (prevGoods?.packagingTypes) {
+      const packagingTypes = ['pallets', 'boxes', 'bags', 'others'];
+      packagingTypes.forEach(type => {
+        const pkg = prevGoods.packagingTypes[type];
+        if (pkg && pkg.selected && pkg.quantity) {
+          currentPage += pkg.quantity;
+        }
+      });
+    } else {
+      currentPage += 1; // Default delivery page
+    }
+  }
+  
+  // Add current packaging unit position
+  currentPage += packagingUnit.unitIndex;
+  
   const footerText = totalUnits > 1 
-    ? `Job ID: ${jobId} | Location ${index + 1} | ${packagingUnit.label} ${packagingUnit.unitIndex}/${packagingUnit.totalUnits}`
-    : `Job ID: ${jobId} | Location ${index + 1}`;
+    ? `Job ID: ${jobId} | Location ${index + 1} | ${packagingUnit.label} ${packagingUnit.unitIndex}/${packagingUnit.totalUnits} | Page ${currentPage} of ${totalPages}`
+    : `Job ID: ${jobId} | Location ${index + 1} | Page ${currentPage} of ${totalPages}`;
   doc.text(footerText, pageWidth / 2, pageHeight - 5, { align: 'center' });
 };
 
