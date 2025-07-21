@@ -184,23 +184,45 @@ const LocationCountScreen = ({ jobType, onNext, onBack, jobData = {} }) => {
                 Number of {isMultiPickup ? 'pickup' : 'delivery'} locations:
               </label>
               
-              <div className="grid grid-cols-3 gap-3">
-                {Array.from({ length: 9 }, (_, i) => i + 2).map((count) => (
-                  <button
-                    key={count}
-                    onClick={() => setLocationCount(count)}
-                    className={`p-4 rounded-lg border-2 transition-all ${
-                      locationCount === count
-                        ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 text-blue-600'
-                        : 'border-slate-200 hover:border-slate-300 text-slate-700 hover:bg-slate-50'
-                    }`}
-                  >
-                    <div className="text-center">
-                      <div className="text-xl font-bold">{count}</div>
-                      <div className="text-xs">locations</div>
-                    </div>
-                  </button>
+              <select
+                value={locationCount}
+                onChange={(e) => setLocationCount(parseInt(e.target.value))}
+                className="w-full p-3 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:outline-none text-slate-700 bg-white"
+              >
+                {Array.from({ length: 29 }, (_, i) => i + 2).map((count) => (
+                  <option key={count} value={count}>
+                    {count} locations
+                  </option>
                 ))}
+              </select>
+              
+              {/* Conditional text based on quantity ranges */}
+              <div className="mt-3 p-3 rounded-lg border border-slate-200 bg-slate-50">
+                <div className="text-sm text-slate-600">
+                  <p className="font-medium mb-2">Available packaging types for {locationCount} locations:</p>
+                  {locationCount >= 2 && locationCount <= 10 && (
+                    <div className="space-y-2">
+                      <div className="text-green-700 bg-green-50 p-2 rounded border border-green-200">
+                        ✅ <strong>All packaging types:</strong> Pallets, Bags, Boxes, and Loose Items
+                      </div>
+                    </div>
+                  )}
+                  {locationCount >= 11 && locationCount <= 30 && (
+                    <div className="space-y-2">
+                      <div className="text-blue-700 bg-blue-50 p-2 rounded border border-blue-200">
+                        ✅ <strong>Boxes and Loose Items:</strong> Available for 2-30 locations
+                      </div>
+                      <div className="text-red-700 bg-red-50 p-2 rounded border border-red-200">
+                        ❌ <strong>Pallets and Bags:</strong> Limited to 2-10 locations only
+                      </div>
+                    </div>
+                  )}
+                  {locationCount > 30 && (
+                    <div className="text-red-700 bg-red-50 p-2 rounded border border-red-200">
+                      ❌ <strong>Maximum limit exceeded:</strong> Please select 30 or fewer locations
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
             
@@ -1289,7 +1311,8 @@ const GoodsDetailsScreen = ({
   locationData,
   onNext, 
   onBack,
-  initialGoods = null
+  initialGoods = null,
+  jobData = {}
 }) => {
   const [goods, setGoods] = useState(initialGoods || {
     description: '',
@@ -1311,6 +1334,12 @@ const GoodsDetailsScreen = ({
   const methodOptions = ['Tailgate', 'Loading Dock', 'Hand Carry', 'Crane/Hiab'];
 
   const handlePackagingToggle = (type) => {
+    // Check if the packaging type is allowed
+    const packagingType = packagingTypes.find(pt => pt.id === type);
+    if (!packagingType || !packagingType.allowed) {
+      return; // Don't allow toggle if not allowed
+    }
+
     setGoods(prev => ({
       ...prev,
       packagingTypes: {
@@ -1377,30 +1406,61 @@ const GoodsDetailsScreen = ({
     }
   };
 
+  // Get the relevant location count for filtering
+  const getRelevantLocationCount = () => {
+    if (locationType === 'pickup' && jobData.pickupCount) {
+      return jobData.pickupCount;
+    } else if (locationType === 'delivery' && jobData.deliveryCount) {
+      return jobData.deliveryCount;
+    }
+    return totalLocations;
+  };
+
+  const relevantLocationCount = getRelevantLocationCount();
+
+  // Helper function to check if a packaging type is allowed based on location count
+  const isPackagingTypeAllowed = (packagingId) => {
+    if (relevantLocationCount <= 30) {
+      // 2-10 locations: all packaging types available
+      // 11-30 locations: only boxes and loose items available (pallets and bags not available)
+      if (relevantLocationCount <= 10) {
+        return true; // All types available for 2-10 locations
+      } else {
+        return ['boxes', 'others'].includes(packagingId); // Only boxes and loose items for 11-30
+      }
+    }
+    // Above 30 locations: none available (shouldn't happen with UI restrictions)
+    return false;
+  };
+
   const packagingTypes = [
     { 
       id: 'pallets', 
       name: 'Pallets', 
       icon: '🟫', 
-      description: 'Standard shipping pallets'
+      description: 'Standard shipping pallets',
+      allowed: isPackagingTypeAllowed('pallets')
     },
     { 
       id: 'boxes', 
       name: 'Boxes & Cartons', 
       icon: '📦', 
-      description: 'Packaged boxes and cartons'
+      description: 'Packaged boxes and cartons',
+      allowed: isPackagingTypeAllowed('boxes')
     },
     { 
       id: 'bags', 
       name: 'Bags & Sacks', 
       icon: '🛍️', 
-      description: 'Bagged or sacked items'
+      description: 'Bagged or sacked items',
+      allowed: isPackagingTypeAllowed('bags')
     },
     { 
       id: 'others', 
       name: 'Loose items', 
       icon: '📋', 
-      description: 'Other packaging types'
+      description: 'Other packaging types',
+      allowed: isPackagingTypeAllowed('others')
     }
   ];
 
@@ -1642,10 +1702,13 @@ const GoodsDetailsScreen = ({
               <div key={type.id} className="space-y-3">
                 <button
                   onClick={() => handlePackagingToggle(type.id)}
+                  disabled={!type.allowed}
                   className={`w-full p-4 rounded-xl border transition-all text-left relative ${
-                    goods.packagingTypes[type.id].selected
-                      ? "border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100"
-                      : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+                    !type.allowed
+                      ? "border-red-200 bg-red-50 cursor-not-allowed opacity-60"
+                      : goods.packagingTypes[type.id].selected
+                        ? "border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100"
+                        : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
                   }`}
                 >
                   {goods.packagingTypes[type.id].selected && (
@@ -1714,6 +1777,11 @@ const GoodsDetailsScreen = ({
                   <div className="text-xs text-slate-600 ml-11">
                     {type.description}
                   </div>
+                  {!type.allowed && (
+                    <div className="text-xs text-red-600 ml-11 mt-1 font-medium">
+                      ❌ Not available for {relevantLocationCount} locations
+                    </div>
+                  )}
                 </button>
 
                 {goods.packagingTypes[type.id].selected && (
@@ -3387,6 +3455,7 @@ const App = () => {
             onNext={handleGoodsNext}
             onBack={handleBack}
             initialGoods={currentGoodsData}
+            jobData={jobData}
           />
         );
       
