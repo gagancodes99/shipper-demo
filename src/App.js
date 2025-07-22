@@ -1879,6 +1879,7 @@ const VehicleSelectionScreen = ({ onNext, onBack, initialData = {}, jobData }) =
   const [selectedVehicle, setSelectedVehicle] = useState(initialData.vehicle || null);
   const [truckBodyType, setTruckBodyType] = useState(initialData.truckBodyType || '');
   const [isRefrigerated, setIsRefrigerated] = useState(initialData.isRefrigerated || false);
+  const [craneHiabOption, setCraneHiabOption] = useState(initialData.craneHiabOption || '');
 
   const vehicles = [
     { id: 'van', name: 'Van (1T)', capacity: '1 Tonne', pallets: '2 Pallets', icon: '🚐', maxWeight: 1, maxPallets: 2 },
@@ -1959,13 +1960,32 @@ const VehicleSelectionScreen = ({ onNext, onBack, initialData = {}, jobData }) =
 
   const truckBodyTypes = ['Pantech', 'Curtain Sider', 'Flatbed'];
 
-  // Filter truck body types based on refrigeration selection
-  const getAvailableTruckBodyTypes = () => {
-    if (isRefrigerated) {
-      // Hide Crane, Hiab, and Curtain Sider when refrigeration is selected
-      return truckBodyTypes.filter(type => type !== 'Crane' && type !== 'Hiab' && type !== 'Curtain Sider');
+  // Check if crane/hiab handling method is selected
+  const hasCraneHiabMethod = () => {
+    let goodsData = [];
+    
+    // Get goods data based on job type
+    if (jobData.jobType === 'multi-pickup') {
+      goodsData = jobData.pickupGoods || [];
+    } else {
+      // For single and multi-drop, goods are tracked at deliveries
+      goodsData = jobData.deliveryGoods || [];
     }
+    
+    // Check if any goods has crane/hiab method selected
+    return goodsData.some(goods => 
+      goods?.pickupMethod === 'Crane/Hiab' || goods?.deliveryMethod === 'Crane/Hiab'
+    );
+  };
+
+  // Show all truck body types (no filtering based on refrigeration)
+  const getAvailableTruckBodyTypes = () => {
     return truckBodyTypes;
+  };
+
+  // Check if refrigeration should be disabled based on selected truck body type
+  const isRefrigerationDisabled = () => {
+    return truckBodyType === 'Curtain Sider';
   };
 
   const handleVehicleSelect = (vehicle) => {
@@ -1982,7 +2002,8 @@ const VehicleSelectionScreen = ({ onNext, onBack, initialData = {}, jobData }) =
       onNext({ 
         vehicle: selectedVehicle, 
         truckBodyType: selectedVehicle.id === 'van' ? null : truckBodyType,
-        isRefrigerated
+        isRefrigerated,
+        craneHiabOption
       });
     }
   };
@@ -2108,12 +2129,18 @@ const VehicleSelectionScreen = ({ onNext, onBack, initialData = {}, jobData }) =
               <h3 className="text-lg font-semibold text-slate-800">Truck Body Type</h3>
               <span className="text-red-500 ml-1">*</span>
             </div>
-            
+
             <div className="grid grid-cols-1 gap-3">
               {getAvailableTruckBodyTypes().map((type) => (
                 <div
                   key={type}
-                  onClick={() => setTruckBodyType(type)}
+                  onClick={() => {
+                    setTruckBodyType(type);
+                    // Clear refrigeration if selecting incompatible body type
+                    if (type === 'Curtain Sider' && isRefrigerated) {
+                      setIsRefrigerated(false);
+                    }
+                  }}
                   className={`p-4 border rounded-xl cursor-pointer transition-all ${
                     truckBodyType === type 
                       ? 'border-blue-500 bg-gradient-to-r from-blue-50 to-blue-100' 
@@ -2151,27 +2178,80 @@ const VehicleSelectionScreen = ({ onNext, onBack, initialData = {}, jobData }) =
             <h3 className="text-lg font-semibold text-slate-800">Additional Options</h3>
           </div>
           
-          <div className="flex items-center p-4 bg-slate-50 rounded-xl border border-slate-200">
+          <div className={`flex items-center p-4 rounded-xl border ${
+            isRefrigerationDisabled() 
+              ? 'bg-slate-100 border-slate-300 opacity-60' 
+              : 'bg-slate-50 border-slate-200'
+          }`}>
             <input
               type="checkbox"
               id="refrigerated"
               checked={isRefrigerated}
+              disabled={isRefrigerationDisabled()}
               onChange={(e) => {
                 setIsRefrigerated(e.target.checked);
-                // Clear truck body type if Crane, Hiab, or Curtain Sider was selected and refrigeration is enabled
-                if (e.target.checked && (truckBodyType === 'Crane' || truckBodyType === 'Hiab' || truckBodyType === 'Curtain Sider')) {
-                  setTruckBodyType('');
+                // Clear crane/hiab option if refrigeration is enabled
+                if (e.target.checked && craneHiabOption) {
+                  setCraneHiabOption('');
                 }
               }}
-              className="mr-3 text-blue-600 focus:ring-blue-500 w-4 h-4 rounded"
+              className={`mr-3 w-4 h-4 rounded ${
+                isRefrigerationDisabled()
+                  ? 'text-slate-400 focus:ring-slate-300 cursor-not-allowed'
+                  : 'text-blue-600 focus:ring-blue-500'
+              }`}
             />
-            <label htmlFor="refrigerated" className="text-slate-700 flex items-center">
+            <label 
+              htmlFor="refrigerated" 
+              className={`flex items-center ${
+                isRefrigerationDisabled() 
+                  ? 'text-slate-400 cursor-not-allowed' 
+                  : 'text-slate-700'
+              }`}
+            >
               <svg className="w-4 h-4 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
               </svg>
               Refrigerated Transport
+              {isRefrigerationDisabled() && (
+                <span className="ml-2 text-xs text-slate-500">(Not available with Curtain Sider)</span>
+              )}
             </label>
           </div>
+
+          {/* Crane Service Option - Show only when crane/hiab method is selected and refrigeration is not enabled */}
+          {hasCraneHiabMethod() && !isRefrigerated && (
+            <div className="flex items-center p-4 bg-slate-50 rounded-xl border border-slate-200 mt-4">
+              <input
+                type="checkbox"
+                id="crane-service"
+                checked={craneHiabOption === 'crane'}
+                onChange={(e) => setCraneHiabOption(e.target.checked ? 'crane' : '')}
+                className="mr-3 text-orange-600 focus:ring-orange-500 w-4 h-4 rounded"
+              />
+              <label htmlFor="crane-service" className="text-slate-700 flex items-center">
+                <span className="text-lg mr-2">🏗️</span>
+                Crane Service
+              </label>
+            </div>
+          )}
+
+          {/* Hiab Service Option - Show only when crane/hiab method is selected and refrigeration is not enabled */}
+          {hasCraneHiabMethod() && !isRefrigerated && (
+            <div className="flex items-center p-4 bg-slate-50 rounded-xl border border-slate-200 mt-4">
+              <input
+                type="checkbox"
+                id="hiab-service"
+                checked={craneHiabOption === 'hiab'}
+                onChange={(e) => setCraneHiabOption(e.target.checked ? 'hiab' : '')}
+                className="mr-3 text-orange-600 focus:ring-orange-500 w-4 h-4 rounded"
+              />
+              <label htmlFor="hiab-service" className="text-slate-700 flex items-center">
+                <span className="text-lg mr-2">🚛</span>
+                Hiab Service
+              </label>
+            </div>
+          )}
         </div>
 
         <button
@@ -2282,7 +2362,7 @@ const getGoodsSummary = (goods) => {
 };
 
 // Review Screen
-const ReviewScreen = ({ jobData, onNext, onBack }) => {
+const ReviewScreen = ({ jobData, onNext, onBack, onEditPickup, onEditDelivery, onEditVehicle }) => {
   const calculateEstimate = () => {
     const baseRate = jobData.vehicle?.id === 'van' ? 80 : 150;
     const distanceMultiplier = 1.5;
@@ -2315,10 +2395,21 @@ const ReviewScreen = ({ jobData, onNext, onBack }) => {
 
         {/* Pickup Information */}
         {jobData.pickups?.map((pickup, index) => (
-          <div key={`pickup-${index}`} className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
-            <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center">
-              <span className="text-emerald-500 mr-2">📍</span>
-              {jobData.pickups.length > 1 ? `Pickup ${index + 1}` : 'Pickup Details'}
+          <div key={`pickup-${index}`} className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow group">
+            <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center justify-between">
+              <div className="flex items-center">
+                <span className="text-emerald-500 mr-2">📍</span>
+                {jobData.pickups.length > 1 ? `Pickup ${index + 1}` : 'Pickup Details'}
+              </div>
+              <button 
+                onClick={() => onEditPickup(index)}
+                className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                title="Edit pickup details"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </button>
             </h3>
             <div className="space-y-2">
               <p><span className="text-slate-600">Customer:</span> {pickup.customerName}</p>
@@ -2362,10 +2453,21 @@ const ReviewScreen = ({ jobData, onNext, onBack }) => {
 
         {/* Delivery Information */}
         {jobData.deliveries?.map((delivery, index) => (
-          <div key={`delivery-${index}`} className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
-            <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center">
-              <span className="text-red-500 mr-2">📍</span>
-              {jobData.deliveries.length > 1 ? `Delivery ${index + 1}` : 'Delivery Details'}
+          <div key={`delivery-${index}`} className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow group">
+            <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center justify-between">
+              <div className="flex items-center">
+                <span className="text-red-500 mr-2">📍</span>
+                {jobData.deliveries.length > 1 ? `Delivery ${index + 1}` : 'Delivery Details'}
+              </div>
+              <button 
+                onClick={() => onEditDelivery(index)}
+                className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                title="Edit delivery details"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </button>
             </h3>
             <div className="space-y-2">
               <p><span className="text-slate-600">Customer:</span> {delivery.customerName}</p>
@@ -2405,10 +2507,21 @@ const ReviewScreen = ({ jobData, onNext, onBack }) => {
         ))}
 
         {/* Vehicle Information */}
-        <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
-          <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center">
-            <span className="text-blue-500 mr-2">🚚</span>
-            Vehicle & Service
+        <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow group">
+          <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center justify-between">
+            <div className="flex items-center">
+              <span className="text-blue-500 mr-2">🚚</span>
+              Vehicle & Service
+            </div>
+            <button 
+              onClick={onEditVehicle}
+              className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+              title="Edit vehicle selection"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </button>
           </h3>
           <div className="space-y-2">
             <p><span className="text-slate-600">Vehicle:</span> {jobData.vehicle?.name}</p>
@@ -2418,6 +2531,9 @@ const ReviewScreen = ({ jobData, onNext, onBack }) => {
             )}
             {jobData.isRefrigerated && (
               <p><span className="text-slate-600">Special:</span> ❄️ Refrigerated</p>
+            )}
+            {jobData.craneHiabOption && (
+              <p><span className="text-slate-600">Loading/Unloading:</span> 🏗️ {jobData.craneHiabOption === 'crane' ? 'Crane Service' : 'Hiab Service'}</p>
             )}
             <p><span className="text-slate-600">Service:</span> Transfer</p>
           </div>
@@ -2634,6 +2750,15 @@ const PaymentScreen = ({ jobData, onNext, onBack }) => {
               Pay ${total}
             </>
           )}
+        </button>
+
+        <button
+          onClick={onNext}
+          disabled={isProcessing}
+          className="w-full bg-gradient-to-r from-slate-500 to-slate-600 text-white p-4 rounded-lg font-medium hover:from-slate-600 hover:to-slate-700 transition-all flex items-center justify-center transform hover:scale-105 mt-3"
+        >
+          <span className="mr-2">📋</span>
+          Pay Later - Confirm Booking
         </button>
       </div>
     </div>
@@ -3069,6 +3194,16 @@ const BookingConfirmedScreen = ({ jobData }) => {
               </p>
             </div>
           )}
+          
+          {jobData.craneHiabOption && (
+            <div className="mt-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg p-3 border border-orange-200">
+              <p className="text-sm text-orange-800 flex items-center">
+                <span className="text-lg mr-2">🏗️</span>
+                <span className="font-medium">{jobData.craneHiabOption === 'crane' ? 'Crane Service: ' : 'Hiab Service: '}</span>
+                {jobData.craneHiabOption === 'crane' ? 'Heavy lifting capability' : 'Hydraulic arm loading/unloading'}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Action Buttons */}
@@ -3135,7 +3270,8 @@ const App = () => {
     deliveryGoods: [],
     vehicle: null,
     truckBodyType: '',
-    isRefrigerated: false
+    isRefrigerated: false,
+    craneHiabOption: ''
   });
 
   const [currentLocationIndex, setCurrentLocationIndex] = useState(0);
@@ -3485,6 +3621,19 @@ const App = () => {
             jobData={jobData}
             onNext={() => setCurrentStep('payment')}
             onBack={handleBack}
+            onEditPickup={(index) => {
+              setCurrentLocationIndex(index);
+              setCurrentLocationType('pickup');
+              setCurrentStep('locations');
+            }}
+            onEditDelivery={(index) => {
+              setCurrentLocationIndex(index);
+              setCurrentLocationType('delivery');
+              setCurrentStep('locations');
+            }}
+            onEditVehicle={() => {
+              setCurrentStep('vehicle');
+            }}
           />
         );
       
