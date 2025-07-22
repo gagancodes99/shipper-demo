@@ -849,6 +849,7 @@ const LocationDetailsScreen = ({
                   />
                 </svg>
                 Trading Hours
+                <span className="text-red-500 ml-1">*</span>
               </label>
               <select
                 value={formData.tradingHours}
@@ -1325,6 +1326,7 @@ const GoodsDetailsScreen = ({
       others: { selected: false, quantity: 0, weight: 0, dimensions: '' }
     }
   });
+  
 
   const [activeModal, setActiveModal] = useState(null);
 
