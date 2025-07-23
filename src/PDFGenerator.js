@@ -362,7 +362,7 @@ export const generateBookingPDF = async (jobData, jobId, otp) => {
 
 // Generate compact master documentation page
 const generateSummaryPage = async (doc, jobData, jobId, otp, barcodeDataURL) => {
-  const pageWidth = doc.internal.pageSize.width;
+    const pageWidth = doc.internal.pageSize.width;
   const pageHeight = doc.internal.pageSize.height;
   
   // Main background
@@ -380,7 +380,7 @@ const generateSummaryPage = async (doc, jobData, jobId, otp, barcodeDataURL) => 
   
   let yPos = 25;
   
-  // Comprehensive Job Information Card
+  // Comprehensive Job Information Card - Now in Tabular Format
   drawCard(doc, 5, yPos, pageWidth - 10, 32, THEME_COLORS.white, THEME_COLORS.slate[200], 2);
   yPos += 3;
   
@@ -391,91 +391,70 @@ const generateSummaryPage = async (doc, jobData, jobId, otp, barcodeDataURL) => 
   doc.text('JOB DETAILS', 10, yPos);
   yPos += 6;
   
-  // Simple two-column layout for better alignment
-  doc.setFontSize(7);
-  const leftCol = 20;
-  const rightCol = 110;
-  const labelWidth = 45;
+  // Job Details in Tabular Format
+ const jobDetailsData = [
+  ['Job ID:', jobId, 'Driver OTP:', otp.toString()],
+  ['Date Created:', new Date().toLocaleDateString(), 'Time Created:', new Date().toLocaleTimeString()],
+  ['Job Type:', getJobTypeLabel(jobData.jobType), 'Status:', 'Confirmed'],
+  ['Total Locations:', `${(jobData.pickups?.length || 0)}P / ${(jobData.deliveries?.length || 0)}D`, 'Transfer Type:', jobData.transferType || 'Standard'],
+  ['Service Level:', jobData.isRefrigerated ? 'Refrigerated' : 'Standard', '', '']
+];
+
+doc.autoTable({
+  startY: yPos,
+  body: jobDetailsData,
+  margin: { left: 8, right: 8 },
+  styles: {
+    fontSize: 7,
+    cellPadding: 3,
+    lineWidth: 0.1,
+    lineColor: [200, 200, 200],
+  },
+  columnStyles: {
+    0: { 
+      cellWidth: 35, 
+      fontStyle: 'bold', 
+      textColor: [30, 58, 138] // blue-800 for field names
+    },
+    1: { 
+      cellWidth: 35, 
+      textColor: [59, 130, 246] // blue-500 for values
+    },
+    2: { 
+      cellWidth: 35, 
+      fontStyle: 'bold', 
+      textColor: [30, 58, 138] // blue-800 for field names
+    },
+    3: { 
+      cellWidth: 35, 
+      textColor: [59, 130, 246] // blue-500 for values
+    }
+  },
+  // Custom coloring for specific rows
+  didParseCell: function(data) {
+    if (data.row.index === 0) { // First row (Job ID and OTP)
+      if (data.column.index % 2 === 1) { // Value columns
+        data.cell.styles.textColor = [79, 70, 229]; // indigo-600
+      }
+    } else if (data.row.index === 2) { // Job Type row
+      if (data.column.index === 1) { // Job Type value
+        data.cell.styles.textColor = [167, 139, 250]; // purple-400
+      } else if (data.column.index === 3) { // Status value
+        data.cell.styles.textColor = [22, 163, 74]; // green-600
+      }
+    } else if (data.row.index === 4) { // Service Level row
+      if (data.column.index === 1) { // Service Level value
+        data.cell.styles.textColor = jobData.isRefrigerated 
+          ? [6, 182, 212] // cyan-500 for refrigerated
+          : [148, 163, 184]; // slate-400 for standard
+      }
+    }
+  }
+});
+
+yPos = doc.lastAutoTable.finalY + 8;
   
-  // Job ID and Driver OTP
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Job ID:', leftCol, yPos);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(jobId, leftCol + labelWidth, yPos);
-  
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Driver OTP:', rightCol, yPos);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(otp.toString(), rightCol + labelWidth, yPos);
-  
-  yPos += 6;
-  
-  // Date and Time
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Date Created:', leftCol, yPos);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(new Date().toLocaleDateString(), leftCol + labelWidth, yPos);
-  
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Time Created:', rightCol, yPos);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(new Date().toLocaleTimeString(), rightCol + labelWidth, yPos);
-  
-  yPos += 6;
-  
-  // Job Type and Status
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Job Type:', leftCol, yPos);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(getJobTypeLabel(jobData.jobType), leftCol + labelWidth, yPos);
-  
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Status:', rightCol, yPos);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text('Confirmed', rightCol + labelWidth, yPos);
-  
-  yPos += 6;
-  
-  // Locations and Transfer Type
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Total Locations:', leftCol, yPos);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(`${(jobData.pickups?.length || 0)}P / ${(jobData.deliveries?.length || 0)}D`, leftCol + labelWidth, yPos);
-  
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Transfer Type:', rightCol, yPos);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(jobData.transferType || 'Standard', rightCol + labelWidth, yPos);
-  
-  yPos += 6;
-  
-  // Service Level
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Service Level:', leftCol, yPos);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(jobData.isRefrigerated ? 'Refrigerated' : 'Standard', leftCol + labelWidth, yPos);
-  
-  yPos += 8;
-  
-  // Comprehensive Vehicle & Service Information
+  // Comprehensive Vehicle & Service Information - Now in Tabular Format
   drawCard(doc, 5, yPos, pageWidth - 10, 26, THEME_COLORS.white, THEME_COLORS.slate[200], 2);
   yPos += 3;
   
@@ -485,60 +464,69 @@ const generateSummaryPage = async (doc, jobData, jobId, otp, barcodeDataURL) => 
   doc.text('VEHICLE & SERVICE SPECIFICATIONS', 10, yPos);
   yPos += 6;
   
-  doc.setFontSize(7);
   const vehicle = jobData.vehicle || {};
+const vehicleDetailsData = [
+  ['Vehicle:', vehicle.name || 'N/A', 'Capacity:', vehicle.capacity || 'N/A'],
+  ['Max Weight:', `${vehicle.maxWeight || 'N/A'} tonnes`, 'Pallet Capacity:', `${vehicle.pallets || 'N/A'} pallets`],
+  ['Body Type:', jobData.truckBodyType || 'Standard', 'Refrigeration:', jobData.isRefrigerated ? 'Required' : 'Not Required']
+];
+
+doc.autoTable({
+  startY: yPos,
+  body: vehicleDetailsData,
+  margin: { left: 8, right: 8 },
+  styles: {
+    fontSize: 7,
+    cellPadding: 3,
+    lineWidth: 0.1,
+    lineColor: [200, 200, 200],
+  },
+  columnStyles: {
+    0: { 
+      cellWidth: 35, 
+      fontStyle: 'bold', 
+      textColor: [127, 29, 29] // red-800 for field names
+    },
+    1: { 
+      cellWidth: 35, 
+      textColor: [239, 68, 68] // red-500 for values
+    },
+    2: { 
+      cellWidth: 35, 
+      fontStyle: 'bold', 
+      textColor: [127, 29, 29] // red-800 for field names
+    },
+    3: { 
+      cellWidth: 35, 
+      textColor: [239, 68, 68] // red-500 for values
+    }
+  },
+  // Custom coloring for specific cells
+  didParseCell: function(data) {
+    if (data.row.index === 0 && data.column.index === 1) { // Vehicle name
+      data.cell.styles.textColor = [234, 88, 12]; // orange-600
+    } else if (data.row.index === 1) { // Capacity row
+      if (data.column.index === 1) { // Max Weight
+        data.cell.styles.textColor = [5, 150, 105]; // emerald-600
+      } else if (data.column.index === 3) { // Pallet Capacity
+        data.cell.styles.textColor = [8, 145, 178]; // cyan-600
+      }
+    } else if (data.row.index === 2) { // Body Type row
+      if (data.column.index === 1) { // Body Type value
+        data.cell.styles.textColor = [139, 92, 246]; // violet-500
+      } else if (data.column.index === 3) { // Refrigeration value
+        data.cell.styles.textColor = jobData.isRefrigerated 
+          ? [22, 163, 74] // green-600 for required
+          : [148, 163, 184]; // slate-400 for not required
+      }
+    }
+  }
+});
   
-  // Vehicle specifications in simple two-column layout
-  // Vehicle and Capacity
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Vehicle:', leftCol, yPos);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(vehicle.name || 'N/A', leftCol + labelWidth, yPos);
-  
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Capacity:', rightCol, yPos);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(vehicle.capacity || 'N/A', rightCol + labelWidth, yPos);
-  
-  yPos += 6;
-  
-  // Max Weight and Pallet Capacity
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Max Weight:', leftCol, yPos);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(`${vehicle.maxWeight || 'N/A'} tonnes`, leftCol + labelWidth, yPos);
-  
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Pallet Capacity:', rightCol, yPos);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(`${vehicle.pallets || 'N/A'} pallets`, rightCol + labelWidth, yPos);
-  
-  yPos += 6;
-  
-  // Body Type and Refrigeration
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Body Type:', leftCol, yPos);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(jobData.truckBodyType || 'Standard', leftCol + labelWidth, yPos);
-  
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...THEME_COLORS.slate[700]);
-  doc.text('Refrigeration:', rightCol, yPos);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(...THEME_COLORS.slate[600]);
-  doc.text(jobData.isRefrigerated ? 'Required' : 'Not Required', rightCol + labelWidth, yPos);
-  
-  yPos += 6;
+  yPos = doc.lastAutoTable.finalY + 8;
+
+  // Rest of the function remains the same...
+  // [Previous code for pickup locations, delivery locations, shipment totals, etc.]
   
   // Comprehensive Pickup Locations with Full Details
   if (jobData.pickups && jobData.pickups.length > 0) {
@@ -801,14 +789,21 @@ const generateSummaryPage = async (doc, jobData, jobId, otp, barcodeDataURL) => 
   yPos += 8;
   
   // Compact barcode
-  if (barcodeDataURL) {
-    drawCard(doc, 5, yPos, pageWidth - 10, 18, THEME_COLORS.white, THEME_COLORS.slate[200], 2);
-    doc.addImage(barcodeDataURL, 'PNG', 8, yPos + 2, pageWidth - 16, 12);
-    doc.setFontSize(6);
-    doc.setTextColor(...THEME_COLORS.slate[500]);
-    doc.text('Master Tracking Code', 8, yPos + 16);
-    yPos += 20;
-  }
+if (barcodeDataURL) {
+  drawCard(doc, 5, yPos, pageWidth - 10, 18, THEME_COLORS.white, THEME_COLORS.slate[200], 2);
+
+  const barcodeWidth = pageWidth - 16; // 8mm padding on each side
+  const barcodeHeight = 11;
+
+  doc.addImage(barcodeDataURL, 'PNG', 8, yPos + 2, barcodeWidth, barcodeHeight);
+
+  doc.setFontSize(6);
+  doc.setTextColor(...THEME_COLORS.slate[500]);
+  doc.text('Master Tracking Code', 8, yPos + 16);
+
+  yPos += 40; // Adjusted for bottom margin
+}
+
   
   // Add remaining space for footer
   yPos = Math.max(yPos, pageHeight - 25);
@@ -845,32 +840,78 @@ const generatePickupPage = async (doc, pickup, index, jobData, jobId) => {
   doc.text('CUSTOMER & SCHEDULE INFORMATION', 15, yPos);
   yPos += 8;
 
-  const customerScheduleData = [
+const customerScheduleData = [
     ['Customer:', pickup.customerName || 'N/A', 'Mobile:', pickup.recipientMobile || 'N/A'],
     ['Address:', formatAddress(pickup.address), '', ''],
     ['Date:', pickup.date || 'N/A', 'Time:', pickup.time || 'N/A'],
     ['Trading Hours:', pickup.tradingHours || 'N/A', '', '']
-  ];
+];
 
-  doc.autoTable({
+doc.autoTable({
     startY: yPos,
     body: customerScheduleData,
     margin: { left: 15, right: 15 },
     styles: {
-      fontSize: 7,
-      cellPadding: 3,
-      lineWidth: 0.1,
-      lineColor: [226, 232, 240],
-      textColor: [71, 85, 105],
+        fontSize: 7,
+        cellPadding: 3,
+        lineWidth: 0.1,
+        lineColor: [226, 232, 240], // slate-200 for grid lines
     },
     columnStyles: {
-      0: { cellWidth: 30, fontStyle: 'bold', textColor: [51, 65, 85] },
-      1: { cellWidth: 50, textColor: [100, 116, 139] },
-      2: { cellWidth: 25, fontStyle: 'bold', textColor: [51, 65, 85] },
-      3: { cellWidth: 50, textColor: [100, 116, 139] }
+        0: { 
+            cellWidth: 30, 
+            fontStyle: 'bold', 
+            textColor: [101, 116, 139] // slate-600 for field names
+        },
+        1: { 
+            cellWidth: 50, 
+            textColor: [71, 85, 105] // slate-700 for values
+        },
+        2: { 
+            cellWidth: 25, 
+            fontStyle: 'bold', 
+            textColor: [101, 116, 139] // slate-600 for field names
+        },
+        3: { 
+            cellWidth: 50, 
+            textColor: [71, 85, 105] // slate-700 for values
+        }
+    },
+    // Custom coloring for specific cells
+    didParseCell: function(data) {
+        // Highlight customer name
+        if (data.row.index === 0 && data.column.index === 1) {
+            data.cell.styles.textColor = [79, 70, 229]; // indigo-600
+            data.cell.styles.fontStyle = 'bold';
+        }
+        
+        // Highlight mobile number
+        if (data.row.index === 0 && data.column.index === 3) {
+            data.cell.styles.textColor = [5, 150, 105]; // emerald-600
+        }
+        
+        // Style address differently
+        if (data.row.index === 1 && data.column.index === 1) {
+            data.cell.styles.textColor = [30, 58, 138]; // blue-800
+            data.cell.styles.fontStyle = 'normal';
+        }
+        
+        // Highlight date/time
+        if (data.row.index === 2) {
+            if (data.column.index === 1) { // Date
+                data.cell.styles.textColor = [219, 39, 119]; // pink-600
+            }
+            if (data.column.index === 3) { // Time
+                data.cell.styles.textColor = [234, 88, 12]; // orange-600
+            }
+        }
+        
+        // Style trading hours
+        if (data.row.index === 3 && data.column.index === 1) {
+            data.cell.styles.textColor = [6, 95, 70]; // emerald-800
+        }
     }
-  });
-
+});
   yPos = doc.lastAutoTable.finalY + 10;
   
   // Compact Instructions Card
@@ -1168,32 +1209,81 @@ const generateDeliveryPage = async (doc, delivery, index, jobData, jobId, packag
   doc.text('CUSTOMER & SCHEDULE INFORMATION', 15, yPos);
   yPos += 8;
 
-  const customerScheduleData = [
+const customerScheduleData = [
     ['Customer:', delivery.customerName || 'N/A', 'Contact:', delivery.contactNumber || 'N/A'],
     ['Address:', formatAddress(delivery.address), '', ''],
     ['Date:', delivery.date || 'N/A', 'Time:', delivery.time || 'N/A'],
     ['Trading Hours:', delivery.tradingHours || 'N/A', '', '']
-  ];
+];
 
-  doc.autoTable({
+doc.autoTable({
     startY: yPos,
     body: customerScheduleData,
     margin: { left: 15, right: 15 },
     styles: {
-      fontSize: 7,
-      cellPadding: 3,
-      lineWidth: 0.1,
-      lineColor: [226, 232, 240],
-      textColor: [71, 85, 105],
+        fontSize: 7,
+        cellPadding: 3,
+        lineWidth: 0.1,
+        lineColor: [226, 232, 240], // slate-200 for grid lines
     },
     columnStyles: {
-      0: { cellWidth: 30, fontStyle: 'bold', textColor: [51, 65, 85] },
-      1: { cellWidth: 50, textColor: [100, 116, 139] },
-      2: { cellWidth: 25, fontStyle: 'bold', textColor: [51, 65, 85] },
-      3: { cellWidth: 50, textColor: [100, 116, 139] }
+        0: { 
+            cellWidth: 30, 
+            fontStyle: 'bold', 
+            textColor: [101, 116, 139] // slate-600 for field names
+        },
+        1: { 
+            cellWidth: 50, 
+            textColor: [71, 85, 105] // slate-700 for values
+        },
+        2: { 
+            cellWidth: 25, 
+            fontStyle: 'bold', 
+            textColor: [101, 116, 139] // slate-600 for field names
+        },
+        3: { 
+            cellWidth: 50, 
+            textColor: [71, 85, 105] // slate-700 for values
+        }
+    },
+    // Custom coloring for specific cells
+    didParseCell: function(data) {
+        // Highlight customer name (different from pickup to show distinction)
+        if (data.row.index === 0 && data.column.index === 1) {
+            data.cell.styles.textColor = [124, 58, 237]; // violet-600
+            data.cell.styles.fontStyle = 'bold';
+        }
+        
+        // Highlight contact number
+        if (data.row.index === 0 && data.column.index === 3) {
+            data.cell.styles.textColor = [16, 185, 129]; // emerald-500
+        }
+        
+        // Style address differently (darker for better readability)
+        if (data.row.index === 1 && data.column.index === 1) {
+            data.cell.styles.textColor = [30, 58, 138]; // blue-800
+            data.cell.styles.fontStyle = 'normal';
+        }
+        
+        // Highlight date/time with delivery-specific colors
+        if (data.row.index === 2) {
+            if (data.column.index === 1) { // Date
+                data.cell.styles.textColor = [236, 72, 153]; // pink-500
+            }
+            if (data.column.index === 3) { // Time
+                data.cell.styles.textColor = [249, 115, 22]; // orange-500
+            }
+        }
+        
+        // Style trading hours with attention-grabbing color
+        if (data.row.index === 3 && data.column.index === 1) {
+            data.cell.styles.textColor = [6, 95, 70]; // emerald-800
+            if (delivery.tradingHours && delivery.tradingHours.includes('Closed')) {
+                data.cell.styles.textColor = [220, 38, 38]; // red-600 for closed hours
+            }
+        }
     }
-  });
-
+});
   yPos = doc.lastAutoTable.finalY + 10;
   
   // Instructions Section
@@ -1249,28 +1339,83 @@ const generateDeliveryPage = async (doc, delivery, index, jobData, jobId, packag
 
     // Goods summary table
     const goodsSummaryData = [
-      ['Description:', goods.description || 'N/A', 'Delivery Method:', goods.deliveryMethod || 'N/A'],
-      ['Total Weight:', `${totalWeight}kg`, 'Total Items:', `${totalItems} pieces`]
-    ];
+  ['Description:', goods.description || 'N/A', 'Delivery Method:', goods.deliveryMethod || 'N/A'],
+  ['Total Weight:', `${totalWeight}kg`, 'Total Items:', `${totalItems} pieces`]
+];
 
-    doc.autoTable({
-      startY: yPos,
-      body: goodsSummaryData,
-      margin: { left: 15, right: 15 },
-      styles: {
-        fontSize: 7,
-        cellPadding: 3,
-        lineWidth: 0.1,
-        lineColor: [226, 232, 240],
-        textColor: [71, 85, 105],
-      },
-      columnStyles: {
-        0: { cellWidth: 35, fontStyle: 'bold', textColor: [51, 65, 85] },
-        1: { cellWidth: 45, textColor: [100, 116, 139] },
-        2: { cellWidth: 35, fontStyle: 'bold', textColor: [51, 65, 85] },
-        3: { cellWidth: 40, textColor: [100, 116, 139] }
+doc.autoTable({
+  startY: yPos,
+  body: goodsSummaryData,
+  margin: { left: 15, right: 15 },
+  styles: {
+    fontSize: 7,
+    cellPadding: 3,
+    lineWidth: 0.1,
+    lineColor: [226, 232, 240], // slate-200 for grid lines
+  },
+  columnStyles: {
+    0: { 
+      cellWidth: 35, 
+      fontStyle: 'bold', 
+      textColor: [55, 65, 81] // slate-800 for field names
+    },
+    1: { 
+      cellWidth: 45, 
+      textColor: [71, 85, 105] // slate-700 for values
+    },
+    2: { 
+      cellWidth: 35, 
+      fontStyle: 'bold', 
+      textColor: [55, 65, 81] // slate-800 for field names
+    },
+    3: { 
+      cellWidth: 40, 
+      textColor: [71, 85, 105] // slate-700 for values
+    }
+  },
+  // Custom coloring for specific cells
+  didParseCell: function(data) {
+    // Highlight description
+    if (data.row.index === 0 && data.column.index === 1) {
+      data.cell.styles.textColor = [79, 70, 229]; // indigo-600
+      data.cell.styles.fontStyle = 'bolditalic';
+    }
+    
+    // Color-code delivery method
+    if (data.row.index === 0 && data.column.index === 3) {
+      const method = (goods.deliveryMethod || '').toLowerCase();
+      if (method.includes('express')) {
+        data.cell.styles.textColor = [220, 38, 38]; // red-600 for express
+      } else if (method.includes('standard')) {
+        data.cell.styles.textColor = [16, 185, 129]; // emerald-500 for standard
+      } else if (method.includes('priority')) {
+        data.cell.styles.textColor = [234, 88, 12]; // orange-600 for priority
       }
-    });
+    }
+    
+    // Highlight weight with gradient color based on value
+    if (data.row.index === 1 && data.column.index === 1) {
+      const weight = parseFloat(totalWeight) || 0;
+      if (weight > 1000) {
+        data.cell.styles.textColor = [220, 38, 38]; // red-600 for heavy
+      } else if (weight > 500) {
+        data.cell.styles.textColor = [234, 88, 12]; // orange-600 for medium
+      } else {
+        data.cell.styles.textColor = [22, 163, 74]; // green-600 for light
+      }
+    }
+    
+    // Highlight item count
+    if (data.row.index === 1 && data.column.index === 3) {
+      const items = parseInt(totalItems) || 0;
+      if (items > 50) {
+        data.cell.styles.textColor = [139, 92, 246]; // violet-500 for large quantities
+      } else {
+        data.cell.styles.textColor = [6, 182, 212]; // cyan-500 for normal quantities
+      }
+    }
+  }
+});
 
     yPos = doc.lastAutoTable.finalY + 8;
 
