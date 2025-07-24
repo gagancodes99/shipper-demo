@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { downloadReactPDF, downloadTestPDF, downloadBeautifulPDF } from './components/pdf/ReactPDFGenerator';
+import { downloadReactPDF} from './components/pdf/ReactPDFGenerator';
 
 // Mock data for addresses
 const mockAddresses = [
@@ -3339,25 +3339,7 @@ const BookingConfirmedScreen = ({ jobData }) => {
             </svg>
             Download Documentation
           </button>
-          
-          <button 
-            onClick={() => downloadBeautifulPDF(jobData, jobId, otp)}
-            className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white p-4 rounded-lg font-medium hover:from-purple-700 hover:to-purple-800 transition-all flex items-center justify-center transform hover:scale-105">
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Download Beautiful PDF ✨
-          </button>
-          
-          <button 
-            onClick={() => downloadTestPDF()}
-            className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white p-4 rounded-lg font-medium hover:from-green-700 hover:to-green-800 transition-all flex items-center justify-center transform hover:scale-105">
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Download Test PDF
-          </button>
-          
+         
           <button className="w-full bg-gradient-to-r from-slate-600 to-slate-700 text-white p-4 rounded-lg font-medium hover:from-slate-700 hover:to-slate-800 transition-all flex items-center justify-center transform hover:scale-105">
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />

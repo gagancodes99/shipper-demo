@@ -79,120 +79,189 @@ const THEME_COLORS = {
 
 // Styles for the PDF components
 const styles = StyleSheet.create({
+  // Page Layout
   page: {
     flexDirection: 'column',
     backgroundColor: THEME_COLORS.slate[50],
-    padding: 10,
+    padding: 24,
+    // Extra space for footer
+    fontFamily: 'Helvetica', // Base font family
   },
-  
-  // Header styles
-  header: {
-    height: 25,
-    backgroundColor: THEME_COLORS.primary.blue600,
-    marginBottom: 10,
-    justifyContent: 'center',
-    paddingLeft: 10,
-  },
+
+  // Header Styles
+header: {
+  position: 'absolute',      // Place it at the top of the screen
+  top: 0,                    // No space from top
+  left: 0,
+  right: 0,
+  height: 42,
+  backgroundColor: THEME_COLORS.primary.blue600,
+  justifyContent: 'center',
+  paddingHorizontal: 18,
+  shadowColor: THEME_COLORS.slate[800],
+  shadowOpacity: 0.1,
+  shadowRadius: 2,
+  shadowOffset: { width: 0, height: 2 },
+  elevation: 2,
+  zIndex: 10,                // Ensures it's on top of other content
+},
+
   headerText: {
     color: THEME_COLORS.white,
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: 'bold',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    marginLeft:100
   },
-  
-  // Card styles
+
+  // Card Styles
   card: {
     backgroundColor: THEME_COLORS.white,
-    borderRadius: 4,
-    padding: 8,
-    marginBottom: 8,
+    borderRadius: 8,
+    padding: 16,
+    marginTop:30,
+    // marginBottom: 26,
     borderWidth: 1,
     borderColor: THEME_COLORS.slate[200],
     borderStyle: 'solid',
+    shadowColor: THEME_COLORS.slate[300],
+    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    elevation: 1,
   },
-  
-  // Section styles
+
+  // Section Styles
   sectionTitle: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginBottom: 12,
     color: THEME_COLORS.slate[800],
+    letterSpacing: 0.3,
+    borderBottomWidth: 1,
+    borderBottomColor: THEME_COLORS.slate[200],
+    paddingBottom: 4,
   },
-  
-  
-  // Grid styles
+  sectionTitleEmerald: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    color: THEME_COLORS.emerald[700],
+    letterSpacing: 0.3,
+    borderBottomWidth: 1,
+    borderBottomColor: THEME_COLORS.emerald[200],
+    paddingBottom: 4,
+  },
+  sectionTitleRed: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    color: THEME_COLORS.red[700],
+    letterSpacing: 0.3,
+    borderBottomWidth: 1,
+    borderBottomColor: THEME_COLORS.red[200],
+    paddingBottom: 4,
+  },
+
+  // Grid System
   gridRow: {
     flexDirection: 'row',
-    marginBottom: 6,
+    marginBottom: 8,
+    gap: 8, // Added gap between cells
   },
   gridCell: {
     flex: 1,
-    padding: 4,
-    marginHorizontal: 2,
+    padding: 8,
     backgroundColor: THEME_COLORS.slate[50],
-    borderRadius: 2,
+    borderRadius: 4,
     borderWidth: 0.5,
     borderColor: THEME_COLORS.slate[200],
     borderStyle: 'solid',
+    minHeight: 26, // Minimum height for better alignment
   },
   gridCellPrimary: {
     flex: 1,
-    padding: 4,
-    marginHorizontal: 2,
+    padding: 8,
     backgroundColor: THEME_COLORS.blue[50],
-    borderRadius: 2,
+    borderRadius: 4,
     borderWidth: 0.5,
     borderColor: THEME_COLORS.blue[200],
     borderStyle: 'solid',
+    minHeight: 36,
   },
   gridCellSuccess: {
     flex: 1,
-    padding: 4,
-    marginHorizontal: 2,
+    padding: 8,
     backgroundColor: THEME_COLORS.emerald[100],
-    borderRadius: 2,
+    borderRadius: 4,
     borderWidth: 0.5,
     borderColor: THEME_COLORS.emerald[200],
     borderStyle: 'solid',
+    minHeight: 36,
   },
   gridCellWarning: {
     flex: 1,
-    padding: 4,
-    marginHorizontal: 2,
+    padding: 8,
     backgroundColor: THEME_COLORS.red[100],
-    borderRadius: 2,
+    borderRadius: 4,
     borderWidth: 0.5,
     borderColor: THEME_COLORS.red[200],
     borderStyle: 'solid',
+    minHeight: 36,
   },
-  
-  // Text styles - Simplified and systematic
+
+  // Typography System
   fieldLabel: {
-    fontSize: 6,
+    fontSize: 8,
     color: THEME_COLORS.slate[500],
-    marginBottom: 2,
+    marginBottom: 3,
+    letterSpacing: 0.2,
   },
   fieldValue: {
-    fontSize: 8,
+    fontSize: 10,
     fontWeight: 'bold',
     color: THEME_COLORS.slate[700],
+    lineHeight: 1.3,
   },
   fieldValuePrimary: {
-    fontSize: 8,
+    fontSize: 10,
     fontWeight: 'bold',
     color: THEME_COLORS.primary.blue600,
+    lineHeight: 1.3,
   },
   fieldValueSuccess: {
-    fontSize: 8,
+    fontSize: 10,
     fontWeight: 'bold',
-    color: THEME_COLORS.emerald[600],  
+    color: THEME_COLORS.emerald[600],
+    lineHeight: 1.3,
   },
   fieldValueWarning: {
-    fontSize: 8,
+    fontSize: 10,
     fontWeight: 'bold',
     color: THEME_COLORS.red[600],
+    lineHeight: 1.3,
   },
-  
-  // Table styles
+  fieldValueEmerald: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: THEME_COLORS.emerald[600],
+    lineHeight: 1.3,
+  },
+  fieldValueOrange: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: THEME_COLORS.orange[600],
+    lineHeight: 1.3,
+  },
+  fieldValueRed: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: THEME_COLORS.red[600],
+    lineHeight: 1.3,
+  },
+
+  // Table Styles
   table: {
     display: 'table',
     width: 'auto',
@@ -201,6 +270,7 @@ const styles = StyleSheet.create({
     borderRightWidth: 0,
     borderBottomWidth: 0,
     borderColor: THEME_COLORS.slate[200],
+    marginVertical: 8,
   },
   tableRow: {
     margin: 'auto',
@@ -214,6 +284,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 0,
     borderColor: THEME_COLORS.slate[200],
     backgroundColor: THEME_COLORS.slate[100],
+    paddingVertical: 6,
   },
   tableCol: {
     width: '25%',
@@ -222,91 +293,159 @@ const styles = StyleSheet.create({
     borderLeftWidth: 0,
     borderTopWidth: 0,
     borderColor: THEME_COLORS.slate[200],
+    paddingVertical: 6,
   },
   tableCellHeader: {
     margin: 'auto',
-    marginTop: 3,
-    marginBottom: 3,
-    fontSize: 8,
+    fontSize: 9,
     fontWeight: 'bold',
     color: THEME_COLORS.slate[700],
+    paddingHorizontal: 4,
   },
   tableCell: {
     margin: 'auto',
-    marginTop: 3,
-    marginBottom: 3,
-    fontSize: 7,
+    fontSize: 8,
     color: THEME_COLORS.slate[600],
+    paddingHorizontal: 4,
+    lineHeight: 1.4,
   },
-  
-  // Instructions box
+
+  // Instructions Box
   instructionsBox: {
     backgroundColor: THEME_COLORS.blue[50],
     borderWidth: 1,
     borderColor: THEME_COLORS.blue[200],
     borderStyle: 'solid',
-    borderRadius: 4,
-    padding: 8,
-    marginBottom: 8,
+    borderRadius: 6,
+    padding: 12,
+    marginTop:12,
+    marginBottom: 12,
   },
   instructionsTitle: {
-    fontSize: 8,
+    fontSize: 9,
     fontWeight: 'bold',
     color: THEME_COLORS.blue[800],
-    marginBottom: 4,
+    marginBottom: 6,
   },
   instructionsText: {
-    fontSize: 7,
+    fontSize: 8,
     color: THEME_COLORS.blue[900],
-    lineHeight: 1.4,
+    lineHeight: 1.5,
   },
-  
+
   // Footer
   footer: {
     position: 'absolute',
-    bottom: 10,
-    left: 10,
-    right: 10,
-    height: 20,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 46,
     backgroundColor: THEME_COLORS.primary.blue600,
     justifyContent: 'center',
-    paddingLeft: 10,
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    borderTopLeftRadius: 6,
+    borderTopRightRadius: 6,
+    shadowColor: THEME_COLORS.slate[800],
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    shadowOffset: { width: 0, height: -2 },
+    elevation: 2,
+  },
+  footerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    alignItems: 'center',
   },
   footerText: {
     color: THEME_COLORS.white,
-    fontSize: 6,
+    fontSize: 9,
+    marginHorizontal: 6,
   },
-  
+  footerPageInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  footerLogo: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: THEME_COLORS.white,
+    marginRight: 12,
+    letterSpacing: 0.5,
+  },
+  footerDivider: {
+    width: 1,
+    height: 16,
+    backgroundColor: THEME_COLORS.white,
+    opacity: 0.3,
+    marginHorizontal: 8,
+  },
+
   // QR Code and Barcode styles
   qrCodeContainer: {
     position: 'absolute',
-    right: 20,
-    bottom: 80,
+    right: 24,
+    bottom: 60,
     alignItems: 'center',
+    backgroundColor: THEME_COLORS.white,
+    padding: 8,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: THEME_COLORS.slate[200],
   },
   qrCode: {
-    width: 60,
-    height: 60,
+    width: 70,
+    height: 70,
   },
   qrCodeLabel: {
-    fontSize: 6,
-    color: THEME_COLORS.slate[500],
-    marginTop: 4,
+    fontSize: 7,
+    color: THEME_COLORS.slate[600],
+    marginTop: 6,
     textAlign: 'center',
   },
   barcodeContainer: {
     alignItems: 'center',
-    marginVertical: 10,
+    marginVertical: 16,
+    backgroundColor: THEME_COLORS.white,
+    padding: 12,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: THEME_COLORS.slate[200],
   },
   barcode: {
-    width: 300,
-    height: 40,
+    width: 220,
+    height: 50,
   },
   barcodeLabel: {
-    fontSize: 6,
-    color: THEME_COLORS.slate[500],
-    marginTop: 4,
+    fontSize: 8,
+    color: THEME_COLORS.slate[600],
+    marginTop: 8,
     textAlign: 'center',
+  },
+
+  // Utility Styles
+  textCenter: {
+    textAlign: 'center',
+  },
+  textUppercase: {
+    textTransform: 'uppercase',
+  },
+  mb8: {
+    marginBottom: 8,
+  },
+  mb12: {
+    marginBottom: 12,
+  },
+  mt8: {
+    marginTop: 8,
+  },
+  mt12: {
+    marginTop: 12,
+  },
+  py8: {
+    paddingVertical: 8,
   },
 });
 
@@ -446,7 +585,7 @@ const SummaryPage = ({ jobData, jobId, otp, barcodeDataURL }) => {
       </View>
       
       {/* Booking Confirmed Section */}
-      <View style={styles.card}>
+      <View style={styles.card }>
         <Text style={[styles.sectionTitle, { textAlign: 'center', color: THEME_COLORS.emerald[600] }]}>
           BOOKING CONFIRMED
         </Text>
@@ -470,20 +609,21 @@ const SummaryPage = ({ jobData, jobId, otp, barcodeDataURL }) => {
             style={styles.gridCell}
             valueStyle={styles.fieldValuePrimary}
           />
-          <GridCell 
+          {/* <GridCell 
             label="OTP" 
             value={otp.toString()} 
             style={styles.gridCellPrimary}
             valueStyle={styles.fieldValuePrimary}
-          />
-        </View>
-        <View style={styles.gridRow}>
-          <GridCell 
+          /> */}
+            <GridCell 
             label="Status" 
             value="Confirmed" 
             style={styles.gridCellSuccess}
             valueStyle={styles.fieldValueSuccess}
           />
+        </View>
+        <View style={styles.gridRow}>
+        
           <GridCell 
             label="Type" 
             value={getJobTypeLabel(jobData.jobType)} 
@@ -557,16 +697,16 @@ const SummaryPage = ({ jobData, jobId, otp, barcodeDataURL }) => {
             
             return (
               <View key={index} style={{ marginBottom: 6 }}>
-                <Text style={{ fontSize: 8, fontWeight: 'bold', color: THEME_COLORS.primary.blue600 }}>
+                <Text style={{ fontSize: 12, fontWeight: 'bold', color: THEME_COLORS.primary.blue600 }}>
                   {index + 1}. {pickup.customerName || 'N/A'}
                 </Text>
-                <Text style={{ fontSize: 7, color: THEME_COLORS.slate[600] }}>
+                <Text style={{ fontSize: 10, color: THEME_COLORS.slate[600] }}>
                   {formatAddress(pickup.address)}
                 </Text>
-                <Text style={{ fontSize: 7, color: THEME_COLORS.slate[600] }}>
+                <Text style={{ fontSize: 9, color: THEME_COLORS.slate[600] }}>
                   {pickup.date || 'N/A'} at {pickup.time || 'N/A'} | {pickup.recipientMobile || 'N/A'}
                 </Text>
-                <Text style={{ fontSize: 6, color: THEME_COLORS.slate[700] }}>
+                <Text style={{ fontSize: 8, color: THEME_COLORS.slate[700] }}>
                   {packagingSummary}
                 </Text>
               </View>
@@ -585,16 +725,16 @@ const SummaryPage = ({ jobData, jobId, otp, barcodeDataURL }) => {
             
             return (
               <View key={index} style={{ marginBottom: 6 }}>
-                <Text style={{ fontSize: 8, fontWeight: 'bold', color: THEME_COLORS.slate[700] }}>
+                <Text style={{ fontSize: 12, fontWeight: 'bold', color: THEME_COLORS.slate[700] }}>
                   {index + 1}. {delivery.customerName || 'N/A'}
                 </Text>
-                <Text style={{ fontSize: 7, color: THEME_COLORS.slate[600] }}>
+                <Text style={{ fontSize: 10, color: THEME_COLORS.slate[600] }}>
                   {formatAddress(delivery.address)}
                 </Text>
-                <Text style={{ fontSize: 7, color: THEME_COLORS.slate[600] }}>
+                <Text style={{ fontSize: 9, color: THEME_COLORS.slate[600] }}>
                   {delivery.date || 'N/A'} at {delivery.time || 'N/A'} | {delivery.tradingHours || 'N/A'}
                 </Text>
-                <Text style={{ fontSize: 6, color: THEME_COLORS.slate[700] }}>
+                <Text style={{ fontSize: 8, color: THEME_COLORS.slate[700] }}>
                   {packagingSummary}
                 </Text>
               </View>
@@ -676,7 +816,7 @@ const SummaryPage = ({ jobData, jobId, otp, barcodeDataURL }) => {
       {/* Footer */}
       <View style={styles.footer}>
         <Text style={styles.footerText}>Generated by Phoenix Prime Shipper</Text>
-        <Text style={[styles.footerText, { fontSize: 5 }]}>
+        <Text style={[styles.footerText, { fontSize: 9 }]}>
           Page 1 of {1 + (jobData.pickups?.length || 0) + (jobData.deliveries?.length || 0)}
         </Text>
       </View>
@@ -857,7 +997,7 @@ const PickupPage = ({ pickup, index, jobData, jobId, qrCodeDataURL }) => {
       {/* Footer */}
       <View style={[styles.footer, { backgroundColor: THEME_COLORS.emerald[600] }]}>
         <Text style={styles.footerText}>Phoenix Prime Shipper - Pickup Documentation</Text>
-        <Text style={[styles.footerText, { fontSize: 5 }]}>
+        <Text style={[styles.footerText, { fontSize: 9 }]}>
           Job ID: {jobId} | Location {index + 1}
         </Text>
       </View>
@@ -1109,7 +1249,7 @@ const DeliveryPage = ({ delivery, index, jobData, jobId, packagingUnit, totalUni
       {/* Footer */}
       <View style={[styles.footer, { backgroundColor: THEME_COLORS.red[600] }]}>
         <Text style={styles.footerText}>Phoenix Prime Shipper - Delivery Documentation</Text>
-        <Text style={[styles.footerText, { fontSize: 5 }]}>
+        <Text style={[styles.footerText, { fontSize: 9 }]}>
           {totalUnits > 1 
             ? `Job ID: ${jobId} | Location ${index + 1} | ${packagingUnit.label} ${packagingUnit.unitIndex}/${packagingUnit.totalUnits}`
             : `Job ID: ${jobId} | Location ${index + 1}`

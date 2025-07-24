@@ -1,7 +1,6 @@
 import React from 'react';
 import { pdf } from '@react-pdf/renderer';
 import { generateBookingPDF } from '../../PDFGeneratorReact';
-import TestPDFDocument from './TestPDFDocument';
 
 // Generate and download PDF using React components
 export const downloadReactPDF = async (jobData, jobId, otp) => {
@@ -29,64 +28,6 @@ export const downloadReactPDF = async (jobData, jobId, otp) => {
   }
 };
 
-// Test function to download simple PDF
-export const downloadTestPDF = async () => {
-  try {
-    const testData = {
-      jobType: 'single',
-      vehicle: { name: 'Test Van' },
-      pickups: [{ customerName: 'Test Customer', address: { address: 'Test Address' } }],
-      deliveries: [{ customerName: 'Test Delivery', address: { address: 'Test Delivery Address' } }]
-    };
-    
-    const blob = await pdf(
-      <TestPDFDocument 
-        jobData={testData} 
-        jobId="TEST123" 
-        otp={1234} 
-      />
-    ).toBlob();
-    
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'test_pdf.pdf';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
-    console.log('Test PDF downloaded successfully');
-  } catch (error) {
-    console.error('Error generating test PDF:', error);
-    throw error;
-  }
-};
-
-// Beautiful PDF function 
-export const downloadBeautifulPDF = async (jobData, jobId, otp) => {
-  try {
-    console.log('Generating beautiful PDF with data:', { jobData, jobId, otp });
-    
-    // Generate the PDF with QR codes and barcodes
-    const documentWithCodes = await generateBookingPDF(jobData, jobId, otp);
-    const blob = await pdf(documentWithCodes).toBlob();
-    
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Phoenix_Shipper_Complete_${jobId}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
-    console.log('Beautiful PDF downloaded successfully');
-  } catch (error) {
-    console.error('Error generating beautiful PDF:', error);
-    throw error;
-  }
-};
 
 // Generate PDF blob for preview (without download)
 export const generateReactPDFBlob = async (jobData, jobId, otp) => {
