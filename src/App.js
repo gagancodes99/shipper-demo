@@ -374,14 +374,14 @@ const LocationDetailsScreen = ({
   onNext, 
   onBack,
   initialData = {},
-  pickupDate = null // For delivery screens to use same date as pickup
+  pickupDate = null // For auto-selecting date from previous locations
 }) => {
   const [formData, setFormData] = useState({
     customerName: initialData.customerName || '',
     address: initialData.address || null,
     recipientMobile: initialData.recipientMobile || '', // NEW: Mobile number field
     instructions: initialData.instructions || '',
-    date: initialData.date || (locationType === 'delivery' && pickupDate ? pickupDate : ''),
+    date: initialData.date || (pickupDate ? pickupDate : ''),
     time: initialData.time || '',
     flexibleTiming: initialData.flexibleTiming || false,
     tradingHours: initialData.tradingHours || '',
@@ -398,7 +398,7 @@ const LocationDetailsScreen = ({
       address: initialData.address || null,
       recipientMobile: initialData.recipientMobile || '', // NEW
       instructions: initialData.instructions || '',
-      date: initialData.date || (locationType === 'delivery' && pickupDate ? pickupDate : ''),
+      date: initialData.date || (pickupDate ? pickupDate : ''),
       time: initialData.time || '',
       flexibleTiming: initialData.flexibleTiming || false,
       tradingHours: initialData.tradingHours || '',
@@ -731,14 +731,9 @@ const LocationDetailsScreen = ({
                     setFormData({ ...formData, date: e.target.value })
                   }
                   className="w-full p-4 border border-slate-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all bg-slate-50 focus:bg-white"
-                  disabled={locationType === "delivery" && pickupDate}
+                  disabled={pickupDate !== null}
                   min={new Date().toISOString().split("T")[0]}
                 />
-                {locationType === "delivery" && pickupDate && (
-                  <p className="text-xs text-slate-500 mt-1">
-                    Date is set same as pickup date
-                  </p>
-                )}
               </div>
               <div>
                 <label className="flex items-center text-sm font-medium text-slate-700 mb-3">
@@ -1985,7 +1980,7 @@ const VehicleSelectionScreen = ({ onNext, onBack, initialData = {}, jobData }) =
 
   // Check if refrigeration should be disabled based on selected truck body type
   const isRefrigerationDisabled = () => {
-    return truckBodyType === 'Curtain Sider';
+    return truckBodyType === 'Curtain Sider' || truckBodyType === 'Flatbed';
   };
 
   const handleVehicleSelect = (vehicle) => {
@@ -2137,7 +2132,7 @@ const VehicleSelectionScreen = ({ onNext, onBack, initialData = {}, jobData }) =
                   onClick={() => {
                     setTruckBodyType(type);
                     // Clear refrigeration if selecting incompatible body type
-                    if (type === 'Curtain Sider' && isRefrigerated) {
+                    if ((type === 'Curtain Sider' || type === 'Flatbed') && isRefrigerated) {
                       setIsRefrigerated(false);
                     }
                   }}
@@ -2210,7 +2205,7 @@ const VehicleSelectionScreen = ({ onNext, onBack, initialData = {}, jobData }) =
               </svg>
               Refrigerated Transport
               {isRefrigerationDisabled() && (
-                <span className="ml-2 text-xs text-slate-500">(Not available with Curtain Sider)</span>
+                <span className="ml-2 text-xs text-slate-500">(Not available with Curtain Sider or Flatbed)</span>
               )}
             </label>
           </div>
@@ -3344,20 +3339,14 @@ const BookingConfirmedScreen = ({ jobData }) => {
             Track Shipment
           </button>
           
-          <div className="grid grid-cols-2 gap-3">
-            <button className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white p-3 rounded-lg font-medium hover:from-emerald-700 hover:to-emerald-800 transition-all flex items-center justify-center text-sm transform hover:scale-105">
-              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 1v6h6V1M4 8h16l-1 13H5L4 8zM6 8V6a2 2 0 012-2h8a2 2 0 012 2v2" />
-              </svg>
-              Pickups
-            </button>
-            <button className="bg-gradient-to-r from-red-500 to-red-600 text-white p-3 rounded-lg font-medium hover:from-red-600 hover:to-red-700 transition-all flex items-center justify-center text-sm transform hover:scale-105">
-              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-              </svg>
-              Deliveries
-            </button>
-          </div>
+          <button 
+            onClick={() => window.location.reload()}
+            className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white p-4 rounded-lg font-medium hover:from-green-700 hover:to-green-800 transition-all flex items-center justify-center transform hover:scale-105">
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Add New Job
+          </button>
           
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 text-center">
             <div className="flex items-center justify-center mb-2">
@@ -3677,8 +3666,24 @@ const App = () => {
           ? jobData.pickups?.[currentLocationIndex] 
           : jobData.deliveries?.[currentLocationIndex];
         
-        // Get pickup date for delivery screens
-        const pickupDate = jobData.pickups?.[0]?.date || null;
+        // Get date for auto-selection based on job type and location type
+        let inheritedDate = null;
+        
+        if (jobData.jobType === 'single' || jobData.jobType === 'multi-drop') {
+          // For single and multi-drop: use pickup date for delivery screens
+          if (currentLocationType === 'delivery') {
+            inheritedDate = jobData.pickups?.[0]?.date || null;
+          }
+        } else if (jobData.jobType === 'multi-pickup') {
+          if (currentLocationType === 'pickup' && currentLocationIndex > 0) {
+            // For multi-pickup: use first pickup date for subsequent pickups
+            inheritedDate = jobData.pickups?.[0]?.date || null;
+          } else if (currentLocationType === 'delivery') {
+            // For multi-pickup delivery: use last pickup date
+            const lastPickupIndex = (jobData.pickupCount || 1) - 1;
+            inheritedDate = jobData.pickups?.[lastPickupIndex]?.date || null;
+          }
+        }
         
         return (
           <LocationDetailsScreen 
@@ -3689,7 +3694,7 @@ const App = () => {
             onNext={handleLocationNext}
             onBack={handleBack}
             initialData={currentLocationData || {}}
-            pickupDate={currentLocationType === 'delivery' ? pickupDate : null}
+            pickupDate={inheritedDate}
           />
         );
       
