@@ -17,6 +17,7 @@ const THEME_COLORS = {
     100: [219, 234, 254],        // blue-100
     200: [191, 219, 254],        // blue-200
     300: [147, 197, 253],        // blue-300
+    500: [59, 130, 246],         // blue-500
     600: [37, 99, 235],          // blue-600
     700: [29, 78, 216],          // blue-700
     800: [30, 64, 175],          // blue-800
@@ -39,6 +40,7 @@ const THEME_COLORS = {
   purple: {
     50: [250, 245, 255],         // purple-50
     200: [221, 214, 254],        // purple-200
+    600: [147, 51, 234],         // purple-600
     800: [109, 40, 217],         // purple-800
     900: [88, 28, 135],          // purple-900
   },
@@ -57,6 +59,7 @@ const THEME_COLORS = {
     600: [71, 85, 105],          // slate-600
     700: [51, 65, 85],           // slate-700
     800: [30, 41, 59],           // slate-800
+    900: [15, 23, 42],           // slate-900
   },
   amber: {
     50: [255, 251, 235],         // amber-50
@@ -64,10 +67,115 @@ const THEME_COLORS = {
     200: [253, 230, 138],        // amber-200
     800: [146, 64, 14],          // amber-800
   },
+  cyan: {
+    50: [236, 254, 255],         // cyan-50
+    100: [207, 250, 254],        // cyan-100
+    200: [165, 243, 252],        // cyan-200
+    500: [6, 182, 212],          // cyan-500
+    600: [8, 145, 178],          // cyan-600
+  },
   indigo: {
     50: [238, 242, 255],         // indigo-50
   },
   white: [255, 255, 255],       // white
+};
+
+// Layout constants for consistent spacing
+const LAYOUT_CONSTANTS = {
+  pageMargin: 10,
+  cardPadding: 5,
+  rowHeight: 6,
+  gridGap: 4,
+  sectionSpacing: 15,
+  headerSpacing: 12,
+  fontSize: {
+    small: 6,
+    normal: 7,
+    medium: 8,
+    large: 9,
+    title: 10
+  }
+};
+
+// Grid layout utility functions
+const createGrid = (doc, startX, startY, totalWidth, cols, rows, cellHeight = 12) => {
+  const cellWidth = (totalWidth - (cols - 1) * LAYOUT_CONSTANTS.gridGap) / cols;
+  const grid = [];
+  
+  for (let row = 0; row < rows; row++) {
+    grid[row] = [];
+    for (let col = 0; col < cols; col++) {
+      const x = startX + col * (cellWidth + LAYOUT_CONSTANTS.gridGap);
+      const y = startY + row * (cellHeight + LAYOUT_CONSTANTS.gridGap);
+      grid[row][col] = {
+        x,
+        y,
+        width: cellWidth,
+        height: cellHeight,
+        centerX: x + cellWidth / 2,
+        centerY: y + cellHeight / 2
+      };
+    }
+  }
+  return grid;
+};
+
+const drawGridCell = (doc, cell, backgroundColor, borderColor, borderWidth = 1) => {
+  // Fill background
+  if (backgroundColor) {
+    doc.setFillColor(...backgroundColor);
+    doc.rect(cell.x, cell.y, cell.width, cell.height, 'F');
+  }
+  
+  // Draw border
+  if (borderColor) {
+    doc.setDrawColor(...borderColor);
+    doc.setLineWidth(borderWidth);
+    doc.rect(cell.x, cell.y, cell.width, cell.height, 'S');
+  }
+};
+
+const addTextToCell = (doc, cell, labelText, valueText, labelColor, valueColor, fontSize = LAYOUT_CONSTANTS.fontSize.normal) => {
+  // Label (smaller, top-left)
+  doc.setFontSize(fontSize - 1);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...labelColor);
+  doc.text(labelText, cell.x + 2, cell.y + 4);
+  
+  // Value (larger, centered)
+  doc.setFontSize(fontSize + 1);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...valueColor);
+  const textWidth = doc.getTextWidth(valueText);
+  const textX = cell.centerX - textWidth / 2;
+  doc.text(valueText, textX, cell.y + 8);
+};
+
+// Table utility functions
+const calculateOptimalColumnWidths = (data, headers, totalWidth, minWidths = {}) => {
+  const numCols = headers.length;
+  const padding = 4; // padding per column
+  const availableWidth = totalWidth - (numCols * padding);
+  
+  // Calculate content-based widths
+  const contentWidths = headers.map((header, colIndex) => {
+    let maxWidth = header.length * 1.2; // Header width estimate
+    
+    data.forEach(row => {
+      if (row[colIndex]) {
+        const contentWidth = row[colIndex].toString().length * 1.2;
+        maxWidth = Math.max(maxWidth, contentWidth);
+      }
+    });
+    
+    return Math.max(maxWidth, minWidths[colIndex] || 15);
+  });
+  
+  // Calculate total and scale to fit
+  const totalContentWidth = contentWidths.reduce((sum, width) => sum + width, 0);
+  const scaleFactor = availableWidth / totalContentWidth;
+  
+  return contentWidths.map(width => width * scaleFactor);
 };
 
 // Utility functions for data formatting
@@ -380,165 +488,145 @@ const generateSummaryPage = async (doc, jobData, jobId, otp, barcodeDataURL) => 
   
   let yPos = 15;
   
-  // Comprehensive Job Information Card - Now in Tabular Format
-  drawCard(doc, 5, yPos, pageWidth - 10, 32, THEME_COLORS.white, THEME_COLORS.slate[200], 2);
-  yPos += 3;
+  // Booking Confirmed Section - matching app design
+  drawCard(doc, 10, yPos, pageWidth - 20, 25, THEME_COLORS.white, THEME_COLORS.slate[200], 2);
   
-  // Card header
-  doc.setFontSize(9);
+  // Booking status indicator
+  doc.setFontSize(8);
+  doc.setTextColor(...THEME_COLORS.emerald[600]);
+  doc.text('CONFIRMED', pageWidth/2 - 8, yPos + 8);
+  
+  // Booking Confirmed text
+  doc.setFontSize(8);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...THEME_COLORS.slate[800]);
-  doc.text('JOB DETAILS', 10, yPos);
-  yPos += 6;
+  doc.text('Booking Confirmed', pageWidth/2 - 12, yPos + 15);
   
-  // Job Details in Tabular Format
- const jobDetailsData = [
-  ['Job ID:', jobId, 'Driver OTP:', otp.toString()],
-  ['Date Created:', new Date().toLocaleDateString(), 'Time Created:', new Date().toLocaleTimeString()],
-  ['Job Type:', getJobTypeLabel(jobData.jobType), 'Status:', 'Confirmed'],
-  ['Total Locations:', `${(jobData.pickups?.length || 0)}P / ${(jobData.deliveries?.length || 0)}D`, 'Transfer Type:', jobData.transferType || 'Standard'],
-  ['Service Level:', jobData.isRefrigerated ? 'Refrigerated' : 'Standard', '', '']
-];
-
-doc.autoTable({
-  startY: yPos,
-  body: jobDetailsData,
-  margin: { left: 8, right: 8 },
-  styles: {
-    fontSize: 7,
-    cellPadding: 3,
-    lineWidth: 0.1,
-    lineColor: [200, 200, 200],
-  },
-  columnStyles: {
-    0: { 
-      cellWidth: 35, 
-      fontStyle: 'bold', 
-      textColor: [30, 58, 138] // blue-800 for field names
-    },
-    1: { 
-      cellWidth: 35, 
-      textColor: [59, 130, 246] // blue-500 for values
-    },
-    2: { 
-      cellWidth: 35, 
-      fontStyle: 'bold', 
-      textColor: [30, 58, 138] // blue-800 for field names
-    },
-    3: { 
-      cellWidth: 35, 
-      textColor: [59, 130, 246] // blue-500 for values
-    }
-  },
-  // Custom coloring for specific rows
-  didParseCell: function(data) {
-    if (data.row.index === 0) { // First row (Job ID and OTP)
-      if (data.column.index % 2 === 1) { // Value columns
-        data.cell.styles.textColor = [79, 70, 229]; // indigo-600
-      }
-    } else if (data.row.index === 2) { // Job Type row
-      if (data.column.index === 1) { // Job Type value
-        data.cell.styles.textColor = [167, 139, 250]; // purple-400
-      } else if (data.column.index === 3) { // Status value
-        data.cell.styles.textColor = [22, 163, 74]; // green-600
-      }
-    } else if (data.row.index === 4) { // Service Level row
-      if (data.column.index === 1) { // Service Level value
-        data.cell.styles.textColor = jobData.isRefrigerated 
-          ? [6, 182, 212] // cyan-500 for refrigerated
-          : [148, 163, 184]; // slate-400 for standard
-      }
-    }
-  }
-});
-
-yPos = doc.lastAutoTable.finalY + 8;
+  // Booking details subtitle
+  doc.setFontSize(6);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...THEME_COLORS.slate[600]);
+  doc.text('Your shipping request has been confirmed', pageWidth/2 - 25, yPos + 20);
   
-  // Comprehensive Vehicle & Service Information - Now in Tabular Format
-  drawCard(doc, 5, yPos, pageWidth - 10, 26, THEME_COLORS.white, THEME_COLORS.slate[200], 2);
+  yPos += 15;
+  
+  // Master Documentation Card
+  const masterCardHeight = 35;
+  drawCard(doc, LAYOUT_CONSTANTS.pageMargin, yPos, pageWidth - 2 * LAYOUT_CONSTANTS.pageMargin, masterCardHeight, THEME_COLORS.white, THEME_COLORS.slate[200], 2);
   yPos += 3;
   
-  doc.setFontSize(9);
+  // Master Documentation header
+  doc.setFontSize(LAYOUT_CONSTANTS.fontSize.small);
+  doc.setTextColor(...THEME_COLORS.slate[600]);
+  doc.text('DOC', 15, yPos + 8);
+  
+  // Master Documentation title
+  doc.setFontSize(LAYOUT_CONSTANTS.fontSize.medium);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...THEME_COLORS.slate[800]);
-  doc.text('VEHICLE & SERVICE SPECIFICATIONS', 10, yPos);
-  yPos += 6;
+  doc.text('Master Documentation', 25, yPos + 8);
+  
+  // Job reference subtitle
+  doc.setFontSize(LAYOUT_CONSTANTS.fontSize.small);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...THEME_COLORS.slate[600]);
+  doc.text('Job reference and details', 25, yPos + 12);
+  
+  // Job details in 2x2 grid format
+  yPos += LAYOUT_CONSTANTS.headerSpacing;
+  
+  const gridStartX = 15;
+  const gridWidth = pageWidth - 30;
+  const grid = createGrid(doc, gridStartX, yPos, gridWidth, 2, 2, 10);
+  
+  // Job ID (top-left)
+  drawGridCell(doc, grid[0][0], THEME_COLORS.slate[50], THEME_COLORS.slate[200], 0.5);
+  addTextToCell(doc, grid[0][0], 'Job ID:', jobId, THEME_COLORS.slate[500], THEME_COLORS.purple[600], LAYOUT_CONSTANTS.fontSize.normal);
+  
+  // OTP (top-right)
+  drawGridCell(doc, grid[0][1], THEME_COLORS.blue[50], THEME_COLORS.blue[200], 0.5);
+  addTextToCell(doc, grid[0][1], 'OTP:', otp.toString(), THEME_COLORS.slate[500], THEME_COLORS.blue[600], LAYOUT_CONSTANTS.fontSize.normal);
+  
+  // Status (bottom-left)
+  drawGridCell(doc, grid[1][0], THEME_COLORS.emerald[100], THEME_COLORS.emerald[200], 0.5);
+  addTextToCell(doc, grid[1][0], 'Status:', 'Confirmed', THEME_COLORS.slate[500], THEME_COLORS.emerald[600], LAYOUT_CONSTANTS.fontSize.normal);
+  
+  // Job Type (bottom-right)
+  drawGridCell(doc, grid[1][1], THEME_COLORS.purple[50], THEME_COLORS.purple[200], 0.5);
+  addTextToCell(doc, grid[1][1], 'Type:', getJobTypeLabel(jobData.jobType), THEME_COLORS.slate[500], THEME_COLORS.purple[600], LAYOUT_CONSTANTS.fontSize.normal);
+  
+  yPos += 22; // Account for grid height + spacing
+  
+  // Vehicle & Service Information Card - tabular format
+  const vehicleCardHeight = 40;
+  drawCard(doc, LAYOUT_CONSTANTS.pageMargin, yPos, pageWidth - 2 * LAYOUT_CONSTANTS.pageMargin, vehicleCardHeight, THEME_COLORS.white, THEME_COLORS.slate[200], 2);
+  yPos += 3;
+  
+  // Vehicle header
+  doc.setFontSize(LAYOUT_CONSTANTS.fontSize.small);
+  doc.setTextColor(...THEME_COLORS.purple[600]);
+  doc.text('VEHICLE', 15, yPos + 8);
+  
+  // Vehicle & Service title
+  doc.setFontSize(LAYOUT_CONSTANTS.fontSize.medium);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...THEME_COLORS.purple[800]);
+  doc.text('Vehicle & Service', 25, yPos + 8);
+  
+  // Transportation details subtitle
+  doc.setFontSize(LAYOUT_CONSTANTS.fontSize.small);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...THEME_COLORS.purple[600]);
+  doc.text('Transportation details', 25, yPos + 12);
+  
+  // Vehicle details in 2x3 grid format
+  yPos += LAYOUT_CONSTANTS.headerSpacing;
   
   const vehicle = jobData.vehicle || {};
-const vehicleDetailsData = [
-  ['Vehicle:', vehicle.name || 'N/A', 'Capacity:', vehicle.capacity || 'N/A'],
-  ['Max Weight:', `${vehicle.maxWeight || 'N/A'} tonnes`, 'Pallet Capacity:', `${vehicle.pallets || 'N/A'} pallets`],
-  ['Body Type:', jobData.truckBodyType || 'Standard', 'Refrigeration:', jobData.isRefrigerated ? 'Required' : 'Not Required']
-];
-
-doc.autoTable({
-  startY: yPos,
-  body: vehicleDetailsData,
-  margin: { left: 8, right: 8 },
-  styles: {
-    fontSize: 7,
-    cellPadding: 3,
-    lineWidth: 0.1,
-    lineColor: [200, 200, 200],
-  },
-  columnStyles: {
-    0: { 
-      cellWidth: 35, 
-      fontStyle: 'bold', 
-      textColor: [127, 29, 29] // red-800 for field names
-    },
-    1: { 
-      cellWidth: 35, 
-      textColor: [239, 68, 68] // red-500 for values
-    },
-    2: { 
-      cellWidth: 35, 
-      fontStyle: 'bold', 
-      textColor: [127, 29, 29] // red-800 for field names
-    },
-    3: { 
-      cellWidth: 35, 
-      textColor: [239, 68, 68] // red-500 for values
-    }
-  },
-  // Custom coloring for specific cells
-  didParseCell: function(data) {
-    if (data.row.index === 0 && data.column.index === 1) { // Vehicle name
-      data.cell.styles.textColor = [234, 88, 12]; // orange-600
-    } else if (data.row.index === 1) { // Capacity row
-      if (data.column.index === 1) { // Max Weight
-        data.cell.styles.textColor = [5, 150, 105]; // emerald-600
-      } else if (data.column.index === 3) { // Pallet Capacity
-        data.cell.styles.textColor = [8, 145, 178]; // cyan-600
-      }
-    } else if (data.row.index === 2) { // Body Type row
-      if (data.column.index === 1) { // Body Type value
-        data.cell.styles.textColor = [139, 92, 246]; // violet-500
-      } else if (data.column.index === 3) { // Refrigeration value
-        data.cell.styles.textColor = jobData.isRefrigerated 
-          ? [22, 163, 74] // green-600 for required
-          : [148, 163, 184]; // slate-400 for not required
-      }
-    }
-  }
-});
+  const vehicleGridStartX = 15;
+  const vehicleGridWidth = pageWidth - 30;
+  const vehicleGrid = createGrid(doc, vehicleGridStartX, yPos, vehicleGridWidth, 2, 3, 8);
   
-  yPos = doc.lastAutoTable.finalY + 8;
+  // Row 1: Vehicle and Capacity
+  drawGridCell(doc, vehicleGrid[0][0], THEME_COLORS.orange[50], THEME_COLORS.orange[200], 0.5);
+  addTextToCell(doc, vehicleGrid[0][0], 'Vehicle:', vehicle.name || 'Van (1T)', THEME_COLORS.slate[500], THEME_COLORS.orange[600], LAYOUT_CONSTANTS.fontSize.small);
+  
+  drawGridCell(doc, vehicleGrid[0][1], THEME_COLORS.cyan[50], THEME_COLORS.cyan[200], 0.5);
+  addTextToCell(doc, vehicleGrid[0][1], 'Capacity:', vehicle.capacity || '1 Tonne', THEME_COLORS.slate[500], THEME_COLORS.cyan[600], LAYOUT_CONSTANTS.fontSize.small);
+  
+  // Row 2: Max Weight and Pallet Capacity
+  drawGridCell(doc, vehicleGrid[1][0], THEME_COLORS.slate[50], THEME_COLORS.slate[200], 0.5);
+  addTextToCell(doc, vehicleGrid[1][0], 'Max Weight:', `${vehicle.maxWeight || '1'} tonnes`, THEME_COLORS.slate[500], THEME_COLORS.cyan[600], LAYOUT_CONSTANTS.fontSize.small);
+  
+  drawGridCell(doc, vehicleGrid[1][1], THEME_COLORS.cyan[50], THEME_COLORS.cyan[200], 0.5);
+  addTextToCell(doc, vehicleGrid[1][1], 'Pallet Capacity:', `${vehicle.pallets || '2'} Pallets`, THEME_COLORS.slate[500], THEME_COLORS.cyan[600], LAYOUT_CONSTANTS.fontSize.small);
+  
+  // Row 3: Body Type and Refrigeration
+  drawGridCell(doc, vehicleGrid[2][0], THEME_COLORS.purple[50], THEME_COLORS.purple[200], 0.5);
+  addTextToCell(doc, vehicleGrid[2][0], 'Body Type:', jobData.truckBodyType || 'Pantech', THEME_COLORS.slate[500], THEME_COLORS.purple[600], LAYOUT_CONSTANTS.fontSize.small);
+  
+  const refrigerationStatus = jobData.isRefrigerated ? 'Required' : 'Not Required';
+  const refrigerationColor = jobData.isRefrigerated ? THEME_COLORS.emerald[600] : THEME_COLORS.slate[400];
+  drawGridCell(doc, vehicleGrid[2][1], THEME_COLORS.slate[50], THEME_COLORS.slate[200], 0.5);
+  addTextToCell(doc, vehicleGrid[2][1], 'Refrigeration:', refrigerationStatus, THEME_COLORS.slate[500], refrigerationColor, LAYOUT_CONSTANTS.fontSize.small);
+  
+  yPos += 28; // Account for 3 rows of grid height + spacing
 
   // Rest of the function remains the same...
   // [Previous code for pickup locations, delivery locations, shipment totals, etc.]
   
   // Comprehensive Pickup Locations with Full Details
   if (jobData.pickups && jobData.pickups.length > 0) {
+    yPos += LAYOUT_CONSTANTS.sectionSpacing;
     const pickupCardHeight = 20 + (jobData.pickups.length * 16);
-    drawCard(doc, 5, yPos, pageWidth - 10, pickupCardHeight, THEME_COLORS.emerald[100], THEME_COLORS.emerald[200], 2);
+    drawCard(doc, LAYOUT_CONSTANTS.cardPadding, yPos, pageWidth - 2 * LAYOUT_CONSTANTS.cardPadding, pickupCardHeight, THEME_COLORS.emerald[100], THEME_COLORS.emerald[200], 2);
     yPos += 3;
     
-    doc.setFontSize(9);
+    doc.setFontSize(LAYOUT_CONSTANTS.fontSize.large);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...THEME_COLORS.emerald[800]);
-    doc.text('PICKUP LOCATIONS', 10, yPos);
-    yPos += 6;
+    doc.text('PICKUP LOCATIONS', LAYOUT_CONSTANTS.pageMargin, yPos);
+    yPos += LAYOUT_CONSTANTS.rowHeight;
     
     // Create pickup locations table
     const pickupTableData = [];
@@ -572,51 +660,57 @@ doc.autoTable({
       ]);
     });
 
+    // Calculate optimal column widths for pickup table
+    const pickupHeaders = ['Customer', 'Address', 'Schedule', 'Contact', 'Goods', 'Packaging', 'Instructions'];
+    const pickupMinWidths = { 0: 20, 1: 30, 2: 22, 3: 18, 4: 20, 5: 30, 6: 20 };
+    const pickupTableWidth = pageWidth - 16; // Account for margins
+    const pickupColumnWidths = calculateOptimalColumnWidths(pickupTableData, pickupHeaders, pickupTableWidth, pickupMinWidths);
+    
+    const pickupColumnStyles = {};
+    pickupColumnWidths.forEach((width, index) => {
+      pickupColumnStyles[index] = { cellWidth: width };
+    });
+
     doc.autoTable({
       startY: yPos,
-      head: [['Customer', 'Address', 'Schedule', 'Contact', 'Goods', 'Packaging', 'Instructions']],
+      head: [pickupHeaders],
       body: pickupTableData,
       margin: { left: 8, right: 8 },
       styles: {
-        fontSize: 6,
+        fontSize: LAYOUT_CONSTANTS.fontSize.small,
         cellPadding: 2,
         lineWidth: 0.1,
         lineColor: [200, 200, 200],
         textColor: [71, 85, 105], // slate-600
+        halign: 'left',
+        valign: 'top',
+        overflow: 'linebreak'
       },
       headStyles: {
         fillColor: [167, 243, 208], // emerald-200
         textColor: [6, 95, 70], // emerald-800
         fontStyle: 'bold',
-        fontSize: 7,
+        fontSize: LAYOUT_CONSTANTS.fontSize.normal,
+        halign: 'center'
       },
-      columnStyles: {
-        0: { cellWidth: 25 }, // Customer
-        1: { cellWidth: 35 }, // Address
-        2: { cellWidth: 25 }, // Schedule
-        3: { cellWidth: 20 }, // Contact
-        4: { cellWidth: 25 }, // Goods
-        5: { cellWidth: 35 }, // Packaging
-        6: { cellWidth: 25 }  // Instructions
-      }
+      columnStyles: pickupColumnStyles
     });
     
-    yPos = doc.lastAutoTable.finalY + 3;
-    
-    yPos += 3;
+    yPos = doc.lastAutoTable.finalY + LAYOUT_CONSTANTS.sectionSpacing;
   }
   
   // Comprehensive Delivery Locations with Full Details
   if (jobData.deliveries && jobData.deliveries.length > 0) {
+    yPos += LAYOUT_CONSTANTS.sectionSpacing;
     const deliveryCardHeight = 20 + (jobData.deliveries.length * 16);
-    drawCard(doc, 5, yPos, pageWidth - 10, deliveryCardHeight, THEME_COLORS.red[100], THEME_COLORS.red[200], 2);
+    drawCard(doc, LAYOUT_CONSTANTS.cardPadding, yPos, pageWidth - 2 * LAYOUT_CONSTANTS.cardPadding, deliveryCardHeight, THEME_COLORS.red[100], THEME_COLORS.red[200], 2);
     yPos += 3;
     
-    doc.setFontSize(9);
+    doc.setFontSize(LAYOUT_CONSTANTS.fontSize.large);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...THEME_COLORS.red[800]);
-    doc.text('DELIVERY LOCATIONS', 10, yPos);
-    yPos += 6;
+    doc.text('DELIVERY LOCATIONS', LAYOUT_CONSTANTS.pageMargin, yPos);
+    yPos += LAYOUT_CONSTANTS.rowHeight;
     
     // Create delivery locations table
     const deliveryTableData = [];
@@ -651,39 +745,43 @@ doc.autoTable({
       ]);
     });
 
+    // Calculate optimal column widths for delivery table
+    const deliveryHeaders = ['Customer', 'Address', 'Schedule', 'Trading Hours', 'Goods', 'Method', 'Packaging', 'Instructions'];
+    const deliveryMinWidths = { 0: 20, 1: 28, 2: 20, 3: 16, 4: 18, 5: 16, 6: 28, 7: 18 };
+    const deliveryTableWidth = pageWidth - 16; // Account for margins
+    const deliveryColumnWidths = calculateOptimalColumnWidths(deliveryTableData, deliveryHeaders, deliveryTableWidth, deliveryMinWidths);
+    
+    const deliveryColumnStyles = {};
+    deliveryColumnWidths.forEach((width, index) => {
+      deliveryColumnStyles[index] = { cellWidth: width };
+    });
+
     doc.autoTable({
       startY: yPos,
-      head: [['Customer', 'Address', 'Schedule', 'Trading Hours', 'Goods', 'Method', 'Packaging', 'Instructions']],
+      head: [deliveryHeaders],
       body: deliveryTableData,
       margin: { left: 8, right: 8 },
       styles: {
-        fontSize: 6,
+        fontSize: LAYOUT_CONSTANTS.fontSize.small,
         cellPadding: 2,
         lineWidth: 0.1,
         lineColor: [200, 200, 200],
         textColor: [71, 85, 105], // slate-600
+        halign: 'left',
+        valign: 'top',
+        overflow: 'linebreak'
       },
       headStyles: {
         fillColor: [251, 146, 60], // red-200 equivalent
         textColor: [153, 27, 27], // red-800
         fontStyle: 'bold',
-        fontSize: 7,
+        fontSize: LAYOUT_CONSTANTS.fontSize.normal,
+        halign: 'center'
       },
-      columnStyles: {
-        0: { cellWidth: 22 }, // Customer
-        1: { cellWidth: 30 }, // Address
-        2: { cellWidth: 22 }, // Schedule
-        3: { cellWidth: 18 }, // Trading Hours
-        4: { cellWidth: 20 }, // Goods
-        5: { cellWidth: 18 }, // Method
-        6: { cellWidth: 30 }, // Packaging
-        7: { cellWidth: 20 }  // Instructions
-      }
+      columnStyles: deliveryColumnStyles
     });
     
-    yPos = doc.lastAutoTable.finalY + 3;
-    
-    yPos += 5;
+    yPos = doc.lastAutoTable.finalY + LAYOUT_CONSTANTS.sectionSpacing;
   }
   
   // Comprehensive Totals and Calculations

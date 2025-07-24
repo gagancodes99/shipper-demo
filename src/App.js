@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { downloadBookingPDF } from './PDFGenerator';
+import { downloadReactPDF, downloadTestPDF, downloadBeautifulPDF } from './components/pdf/ReactPDFGenerator';
 
 // Mock data for addresses
 const mockAddresses = [
@@ -2892,37 +2892,101 @@ const BookingConfirmedScreen = ({ jobData }) => {
           </div>
         </div>
 
-        {/* Master Tracking */}
-        <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
-          <div className="flex items-center mb-4">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center mr-3">
-              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </div>
-            <div>
-              <h3 className="font-semibold text-slate-900">Master Documentation</h3>
-              <p className="text-sm text-slate-600">Shipment tracking and verification</p>
+        {/* Job Summary Header */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-gradient-to-r from-indigo-50 to-blue-50 px-6 py-4 border-b border-indigo-100">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="w-12 h-12 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-xl flex items-center justify-center mr-4">
+                  <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-900">Master Documentation</h3>
+                  <p className="text-sm text-indigo-600">Job reference and details</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="bg-white/70 backdrop-blur-sm rounded-lg px-3 py-2 border border-indigo-200">
+                  <p className="text-xs font-medium text-indigo-600 uppercase tracking-wide">Confirmed</p>
+                </div>
+              </div>
             </div>
           </div>
           
-          <div className="space-y-4">
-            <div className="bg-gradient-to-r from-slate-50 to-slate-100 rounded-lg p-4 text-center">
-              <img src={generateMockBarcode()} alt="Master Barcode" className="mx-auto mb-2" />
-              <p className="text-xs text-slate-600">Master shipment barcode</p>
-            </div>
-            
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center">
-                  <svg className="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="p-6 space-y-6">
+            {/* Job Details Grid */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg p-4 border border-slate-200">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Job ID:</p>
+                  <div className="flex items-center">
+                    <svg className="w-4 h-4 text-slate-400 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-9 0V3a1 1 0 011-1h6a1 1 0 011 1v1m-9 0h10" />
+                    </svg>
+                  </div>
+                </div>
+                <p className="font-mono text-lg font-bold text-indigo-600">{jobId}</p>
+              </div>
+              
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">OTP:</p>
+                  <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
-                  <span className="font-medium text-blue-900">Driver Verification OTP</span>
                 </div>
-                <span className="font-mono text-xl font-bold text-blue-600">{otp}</span>
+                <p className="font-mono text-lg font-bold text-blue-600">{otp}</p>
               </div>
-              <p className="text-sm text-blue-700">Share this code with the driver upon arrival</p>
+              
+              <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg p-4 border border-emerald-200">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Status:</p>
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                </div>
+                <p className="font-semibold text-emerald-600">Confirmed</p>
+              </div>
+              
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Type:</p>
+                  <svg className="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2v0a2 2 0 01-2 2H8a2 2 0 01-2-2v-8a2 2 0 012-2z" />
+                  </svg>
+                </div>
+                <p className="font-semibold text-purple-600">
+                  {jobData.jobType === 'single' ? 'Single Pickup/Drop' : 
+                   jobData.jobType === 'multi-pickup' ? 'Multi Pickup' : 'Multi Drop'}
+                </p>
+              </div>
+            </div>
+
+            {/* Master Barcode Section */}
+            <div className="bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl p-6 border border-slate-200">
+              <div className="text-center">
+                <img src={generateMockBarcode()} alt="Master Barcode" className="mx-auto mb-3" />
+                <p className="text-sm font-medium text-slate-600 mb-1">Master Shipment Barcode</p>
+                <p className="text-xs text-slate-500">Scan for tracking and verification</p>
+              </div>
+            </div>
+            
+            {/* Driver Verification */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-5">
+              <div className="flex items-start">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center mr-4 mt-1">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-blue-900 mb-2">Driver Verification Required</h4>
+                  <p className="text-sm text-blue-700 mb-3">Share the OTP code above with the driver upon arrival for secure verification.</p>
+                  <div className="bg-white/70 backdrop-blur-sm rounded-lg px-3 py-2 inline-block border border-blue-200">
+                    <span className="text-xs font-medium text-blue-600 uppercase tracking-wide">Secure Access Code</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -3142,79 +3206,156 @@ const BookingConfirmedScreen = ({ jobData }) => {
           </div>
         ))}
 
-        {/* Vehicle Information */}
-        <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
-          <div className="flex items-center mb-4">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg flex items-center justify-center mr-3">
-              <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2v0a2 2 0 01-2 2H8a2 2 0 01-2-2v-8a2 2 0 012-2z" />
-              </svg>
-            </div>
-            <div>
-              <h3 className="font-semibold text-slate-900">Vehicle & Service</h3>
-              <p className="text-sm text-slate-600">Transportation details</p>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-gradient-to-r from-slate-50 to-slate-100 rounded-lg p-3">
-              <p className="text-xs text-slate-600 font-medium uppercase tracking-wide">Vehicle</p>
-              <p className="font-semibold text-slate-900">{jobData.vehicle?.name}</p>
-            </div>
-            <div className="bg-gradient-to-r from-slate-50 to-slate-100 rounded-lg p-3">
-              <p className="text-xs text-slate-600 font-medium uppercase tracking-wide">Capacity</p>
-              <p className="font-semibold text-slate-900">{jobData.vehicle?.capacity}</p>
-            </div>
-            <div className="bg-gradient-to-r from-slate-50 to-slate-100 rounded-lg p-3">
-              <p className="text-xs text-slate-600 font-medium uppercase tracking-wide">Service</p>
-              <p className="font-semibold text-slate-900">Transfer</p>
-            </div>
-            <div className="bg-gradient-to-r from-slate-50 to-slate-100 rounded-lg p-3">
-              <p className="text-xs text-slate-600 font-medium uppercase tracking-wide">Duration</p>
-              <p className="font-semibold text-slate-900">4-8 hours</p>
-            </div>
-          </div>
-          
-          {jobData.truckBodyType && (
-            <div className="mt-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-3 border border-blue-200">
-              <p className="text-sm text-blue-800">
-                <span className="font-medium">Body Type: </span>
-                {jobData.truckBodyType}
-              </p>
-            </div>
-          )}
-          
-          {jobData.isRefrigerated && (
-            <div className="mt-4 bg-gradient-to-r from-cyan-50 to-cyan-100 rounded-lg p-3 border border-cyan-200">
-              <p className="text-sm text-cyan-800 flex items-center">
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+        {/* Vehicle & Service Information */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-gradient-to-r from-purple-50 to-indigo-50 px-6 py-4 border-b border-purple-100">
+            <div className="flex items-center">
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl flex items-center justify-center mr-4">
+                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2v0a2 2 0 01-2 2H8a2 2 0 01-2-2v-8a2 2 0 012-2z" />
                 </svg>
-                <span className="font-medium">Refrigerated Transport</span>
-              </p>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-slate-900">Vehicle & Service</h3>
+                <p className="text-sm text-purple-600">Transportation details</p>
+              </div>
             </div>
-          )}
+          </div>
           
-          {jobData.craneHiabOption && (
-            <div className="mt-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg p-3 border border-orange-200">
-              <p className="text-sm text-orange-800 flex items-center">
-                <span className="text-lg mr-2">🏗️</span>
-                <span className="font-medium">{jobData.craneHiabOption === 'crane' ? 'Crane Service: ' : 'Hiab Service: '}</span>
-                {jobData.craneHiabOption === 'crane' ? 'Heavy lifting capability' : 'Hydraulic arm loading/unloading'}
-              </p>
+          <div className="p-6 space-y-6">
+            {/* Main Vehicle Details */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Vehicle:</p>
+                  <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2v0a2 2 0 01-2 2H8a2 2 0 01-2-2v-8a2 2 0 012-2z" />
+                  </svg>
+                </div>
+                <p className="font-bold text-orange-600">{jobData.vehicle?.name || 'Van (1T)'}</p>
+              </div>
+              
+              <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-lg p-4 border border-cyan-200">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Capacity:</p>
+                  <svg className="w-4 h-4 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                  </svg>
+                </div>
+                <p className="font-bold text-cyan-600">{jobData.vehicle?.capacity || '1 Tonne'}</p>
+              </div>
+              
+              <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg p-4 border border-slate-200">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Max Weight:</p>
+                  <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                  </svg>
+                </div>
+                <p className="font-bold text-cyan-600">{jobData.vehicle?.maxWeight || '1 tonnes'}</p>
+              </div>
+              
+              <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-lg p-4 border border-cyan-200">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Pallet Capacity:</p>
+                  <svg className="w-4 h-4 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                  </svg>
+                </div>
+                <p className="font-bold text-cyan-600">{jobData.vehicle?.palletCapacity || '2 Pallets'}</p>
+              </div>
+              
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Body Type:</p>
+                  <svg className="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                </div>
+                <p className="font-bold text-purple-600">{jobData.truckBodyType || 'Pantech'}</p>
+              </div>
+              
+              <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg p-4 border border-slate-200">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Refrigeration:</p>
+                  <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  </svg>
+                </div>
+                <p className="font-bold text-slate-600">{jobData.isRefrigerated ? 'Required' : 'Not Required'}</p>
+              </div>
             </div>
-          )}
+
+            {/* Special Services */}
+            {(jobData.isRefrigerated || jobData.craneHiabOption) && (
+              <div className="space-y-3">
+                <h4 className="font-semibold text-slate-900 text-sm uppercase tracking-wide">Special Services</h4>
+                
+                {jobData.isRefrigerated && (
+                  <div className="bg-gradient-to-r from-cyan-50 to-blue-50 border-2 border-cyan-200 rounded-xl p-4">
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 bg-cyan-100 rounded-lg flex items-center justify-center mr-3">
+                        <svg className="w-4 h-4 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-cyan-800">Refrigerated Transport</p>
+                        <p className="text-sm text-cyan-600">Temperature-controlled cargo handling</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {jobData.craneHiabOption && (
+                  <div className="bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-200 rounded-xl p-4">
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center mr-3">
+                        <span className="text-lg">🏗️</span>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-orange-800">
+                          {jobData.craneHiabOption === 'crane' ? 'Crane Service' : 'Hiab Service'}
+                        </p>
+                        <p className="text-sm text-orange-600">
+                          {jobData.craneHiabOption === 'crane' ? 'Heavy lifting capability' : 'Hydraulic arm loading/unloading'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Action Buttons */}
         <div className="space-y-3">
           <button 
-            onClick={() => downloadBookingPDF(jobData, jobId, otp)}
+            onClick={() => downloadReactPDF(jobData, jobId, otp)}
             className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-lg font-medium hover:from-blue-700 hover:to-blue-800 transition-all flex items-center justify-center transform hover:scale-105">
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             Download Documentation
+          </button>
+          
+          <button 
+            onClick={() => downloadBeautifulPDF(jobData, jobId, otp)}
+            className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white p-4 rounded-lg font-medium hover:from-purple-700 hover:to-purple-800 transition-all flex items-center justify-center transform hover:scale-105">
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Download Beautiful PDF ✨
+          </button>
+          
+          <button 
+            onClick={() => downloadTestPDF()}
+            className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white p-4 rounded-lg font-medium hover:from-green-700 hover:to-green-800 transition-all flex items-center justify-center transform hover:scale-105">
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Download Test PDF
           </button>
           
           <button className="w-full bg-gradient-to-r from-slate-600 to-slate-700 text-white p-4 rounded-lg font-medium hover:from-slate-700 hover:to-slate-800 transition-all flex items-center justify-center transform hover:scale-105">
