@@ -2190,10 +2190,6 @@ const VehicleSelectionScreen = ({ onNext, onBack, initialData = {}, jobData }) =
               disabled={isRefrigerationDisabled()}
               onChange={(e) => {
                 setIsRefrigerated(e.target.checked);
-                // Clear crane/hiab option if refrigeration is enabled
-                if (e.target.checked && craneHiabOption) {
-                  setCraneHiabOption('');
-                }
               }}
               className={`mr-3 w-4 h-4 rounded ${
                 isRefrigerationDisabled()
@@ -2219,8 +2215,8 @@ const VehicleSelectionScreen = ({ onNext, onBack, initialData = {}, jobData }) =
             </label>
           </div>
 
-          {/* Crane Service Option - Show only when crane/hiab method is selected and refrigeration is not enabled */}
-          {hasCraneHiabMethod() && !isRefrigerated && (
+          {/* Crane Service Option - Show only when crane/hiab method is selected */}
+          {hasCraneHiabMethod() && (
             <div className="flex items-center p-4 bg-slate-50 rounded-xl border border-slate-200 mt-4">
               <input
                 type="checkbox"
@@ -2236,8 +2232,8 @@ const VehicleSelectionScreen = ({ onNext, onBack, initialData = {}, jobData }) =
             </div>
           )}
 
-          {/* Hiab Service Option - Show only when crane/hiab method is selected and refrigeration is not enabled */}
-          {hasCraneHiabMethod() && !isRefrigerated && (
+          {/* Hiab Service Option - Show only when crane/hiab method is selected */}
+          {hasCraneHiabMethod() && (
             <div className="flex items-center p-4 bg-slate-50 rounded-xl border border-slate-200 mt-4">
               <input
                 type="checkbox"
