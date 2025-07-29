@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { downloadReactPDF} from './components/pdf/ReactPDFGenerator';
+import ProgressBar from './components/ui/ProgressBar';
+import Header from './components/ui/Header';
+import JobTypeScreen from './components/screens/JobTypeScreen';
+import LocationCountScreen from './components/screens/LocationCountScreen';
+import LocationDetailsScreen from './components/screens/LocationDetailsScreen';
+import GoodsDetailsScreen from './components/screens/GoodsDetailsScreen';
 
 // Mock data for addresses
 const mockAddresses = [
@@ -3667,10 +3673,8 @@ const App = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex justify-center">
-      <div className="w-full max-w-sm sm:max-w-md bg-white min-h-screen shadow-lg">
-        {renderCurrentScreen()}
-      </div>
+    <div className="max-w-md mx-auto bg-white min-h-screen">
+      {renderCurrentScreen()}
     </div>
   );
 };

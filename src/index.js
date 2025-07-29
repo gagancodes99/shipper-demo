@@ -1,13 +1,36 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import App from './App';
 import reportWebVitals from './reportWebVitals';
+
+// Import context providers
+import { AuthProvider } from './context/AuthContext';
+import { JobsProvider } from './context/JobsContext';
+import { TransactionProvider } from './context/TransactionContext';
+
+// Import main app router
+import AppRouter from './components/AppRouter';
+
+/**
+ * Main application entry point with context provider hierarchy
+ * 
+ * Provider structure:
+ * AuthProvider (top level - manages user authentication)
+ *   └── JobsProvider (depends on user data from AuthProvider)
+ *       └── TransactionProvider (depends on user data, links to jobs)
+ *           └── AppRouter (has access to all contexts)
+ */
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    <AuthProvider>
+      <JobsProvider>
+        <TransactionProvider>
+          <AppRouter />
+        </TransactionProvider>
+      </JobsProvider>
+    </AuthProvider>
   </React.StrictMode>
 );
 

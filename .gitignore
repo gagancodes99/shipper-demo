@@ -56,7 +56,9 @@ memory-bank
 
 cypress/screenshots
 
+# Claude Code Infrastructure
+.claude/                        # Enhanced Claude infrastructure
 local_issues/
-local_tasks/
+local_tasks/                    # Legacy global local_tasks
 local_orchestrator/
 CLAUDE.*
