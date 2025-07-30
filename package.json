@@ -11,6 +11,7 @@
     "jsbarcode": "^3.12.1",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.5.28",
+    "lucide-react": "^0.534.0",
     "qrcode": "^1.5.4",
     "qrcode-generator": "^2.0.2",
     "react": "^19.1.0",

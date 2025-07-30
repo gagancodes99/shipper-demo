@@ -16,6 +16,7 @@ import TransferTypeScreen from './screens/TransferTypeScreen';
 import ReviewScreen from './screens/ReviewScreen';
 import PaymentScreen from './screens/PaymentScreen';
 import BookingConfirmedScreen from './screens/BookingConfirmedScreen';
+import { downloadReactPDF } from './pdf/ReactPDFGenerator';
 
 // Import modal components
 import AddressBookModal from './modals/AddressBookModal';
@@ -201,10 +202,14 @@ const BookingFlow = () => {
         );
       
       case 'confirmed':
+        const jobId = 'PX' + Math.random().toString(36).substring(2, 10).toUpperCase();
+        const otp = Math.floor(1000 + Math.random() * 9000);
+        
         return (
           <BookingConfirmedScreen
             {...commonProps}
             jobData={jobData}
+            onDownloadPDF={() => downloadReactPDF(jobData, jobId, otp)}
             onComplete={handleBookingComplete}
           />
         );
