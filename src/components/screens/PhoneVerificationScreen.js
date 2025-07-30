@@ -1,245 +1,150 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 /**
- * PhoneVerificationScreen - Phone number verification screen
+ * PhoneVerificationScreen - Phone number input screen
  * 
  * Features:
- * - 6-digit verification code input
- * - Automatic code input handling
- * - Resend code functionality with countdown
- * - Verification with backend
- * - Navigation after successful verification
+ * - Phone number input with country code
+ * - SMS verification code sending
+ * - Information about why phone verification is needed
+ * - Terms acceptance for SMS messages
  */
 
 const PhoneVerificationScreen = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { verifyPhone, isLoading } = useAuth();
-  
-  const [code, setCode] = useState(['', '', '', '', '', '']);
-  const [errors, setErrors] = useState({});
-  const [resendCountdown, setResendCountdown] = useState(60);
-  const [canResend, setCanResend] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [countryCode, setCountryCode] = useState('+91');
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Get phone number from navigation state
-  const phoneNumber = location.state?.phone || '+1234567890';
-  const fromRegistration = location.state?.fromRegistration || false;
-
-  // Countdown timer for resend functionality
-  useEffect(() => {
-    if (resendCountdown > 0 && !canResend) {
-      const timer = setTimeout(() => {
-        setResendCountdown(resendCountdown - 1);
-      }, 1000);
-      return () => clearTimeout(timer);
-    } else if (resendCountdown === 0) {
-      setCanResend(true);
-    }
-  }, [resendCountdown, canResend]);
-
-  const handleCodeChange = (index, value) => {
-    // Only allow digits
-    if (!/^\d*$/.test(value)) return;
-    
-    const newCode = [...code];
-    newCode[index] = value;
-    setCode(newCode);
-    
-    // Clear errors when user starts typing
-    if (errors.code) {
-      setErrors({});
-    }
-    
-    // Auto-focus next input
-    if (value && index < 5) {
-      const nextInput = document.getElementById(`code-${index + 1}`);
-      if (nextInput) nextInput.focus();
-    }
-    
-    // Auto-submit when all fields are filled
-    if (newCode.every(digit => digit !== '') && newCode.join('').length === 6) {
-      handleVerification(newCode.join(''));
-    }
-  };
-
-  const handleKeyDown = (index, e) => {
-    // Handle backspace
-    if (e.key === 'Backspace' && !code[index] && index > 0) {
-      const prevInput = document.getElementById(`code-${index - 1}`);
-      if (prevInput) prevInput.focus();
-    }
-    
-    // Handle paste
-    if (e.key === 'v' && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault();
-      navigator.clipboard.readText().then(text => {
-        const digits = text.replace(/\D/g, '').slice(0, 6);
-        if (digits.length === 6) {
-          const newCode = digits.split('');
-          setCode(newCode);
-          handleVerification(digits);
-        }
-      });
-    }
-  };
-
-  const handleVerification = async (verificationCode) => {
-    const result = await verifyPhone(phoneNumber, verificationCode);
-    
-    if (result.success) {
-      // Navigate to dashboard after successful verification
-      navigate('/dashboard', { replace: true });
-    } else {
-      setErrors({ code: result.error || 'Invalid verification code. Please try again.' });
-      setCode(['', '', '', '', '', '']);
-      // Focus first input
-      const firstInput = document.getElementById('code-0');
-      if (firstInput) firstInput.focus();
-    }
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const verificationCode = code.join('');
-    
-    if (verificationCode.length !== 6) {
-      setErrors({ code: 'Please enter the complete 6-digit code' });
+  const handleSendCode = async () => {
+    if (!phoneNumber.trim()) {
       return;
     }
-    
-    handleVerification(verificationCode);
-  };
 
-  const handleResendCode = () => {
-    if (!canResend) return;
+    setIsLoading(true);
     
-    // Mock resend logic - replace with actual API call
-    console.log('Resending verification code to:', phoneNumber);
-    
-    // Reset countdown
-    setResendCountdown(60);
-    setCanResend(false);
-    setCode(['', '', '', '', '', '']);
-    setErrors({});
-    
-    // Focus first input
-    const firstInput = document.getElementById('code-0');
-    if (firstInput) firstInput.focus();
-  };
-
-  const maskPhoneNumber = (phone) => {
-    // Mask middle digits of phone number for privacy
-    const cleaned = phone.replace(/\D/g, '');
-    if (cleaned.length >= 10) {
-      return `+${cleaned.slice(0, -7)}***${cleaned.slice(-4)}`;
+    // Simulate sending SMS code
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Navigate to verification code screen with phone number
+      navigate('/verify-phone', { 
+        state: { phoneNumber: `${countryCode} ${phoneNumber}` } 
+      });
+    } catch (error) {
+      console.error('Failed to send verification code:', error);
+    } finally {
+      setIsLoading(false);
     }
-    return phone;
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600">
-      <div className="px-4 py-8 flex flex-col justify-center min-h-screen">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="text-4xl mb-4">📱</div>
-          <h1 className="text-3xl font-bold text-white mb-2">Verify Your Phone</h1>
-          <p className="text-blue-100 mb-2">
-            We've sent a 6-digit code to
-          </p>
-          <p className="text-white font-semibold text-lg">
-            {maskPhoneNumber(phoneNumber)}
-          </p>
-        </div>
+    <div className="min-h-screen bg-white flex flex-col max-w-sm mx-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 bg-white">
+        <button
+          onClick={() => navigate(-1)}
+          className="text-gray-600 hover:text-gray-800"
+        >
+          ←
+        </button>
+        <h1 className="text-lg font-semibold text-gray-900">Phone Verification</h1>
+        <div className="w-6"></div>
+      </div>
 
-        {/* Verification Form */}
-        <div className="bg-white rounded-2xl p-6 shadow-xl">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Error Message */}
-            {errors.code && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                <p className="text-red-600 text-sm text-center">{errors.code}</p>
+      {/* Main Content */}
+      <div className="flex-1 px-4 py-6">
+        <div className="w-full max-w-sm mx-auto">
+          
+          {/* Icon */}
+          <div className="text-center mb-8">
+            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6 relative">
+              <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
+                <span className="text-white text-xl">📞</span>
               </div>
-            )}
-
-            {/* Code Input */}
-            <div>
-              <label className="block text-gray-700 text-sm font-medium mb-4 text-center">
-                Enter verification code
-              </label>
-              <div className="flex justify-center space-x-3">
-                {code.map((digit, index) => (
-                  <input
-                    key={index}
-                    id={`code-${index}`}
-                    type="text"
-                    maxLength="1"
-                    value={digit}
-                    onChange={(e) => handleCodeChange(index, e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(index, e)}
-                    className={`w-12 h-12 text-center text-xl font-bold border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                      errors.code ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                    }`}
-                    disabled={isLoading}
-                  />
-                ))}
+              <div className="absolute -bottom-1 -right-1">
+                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xs">✓</span>
+                </div>
               </div>
             </div>
+          </div>
 
-            {/* Verify Button */}
-            <button
-              type="submit"
-              disabled={isLoading || code.join('').length !== 6}
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-4 rounded-lg font-semibold text-lg hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? (
-                <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                  Verifying...
-                </div>
-              ) : (
-                'Verify Phone Number'
-              )}
-            </button>
-          </form>
-
-          {/* Resend Code */}
-          <div className="text-center mt-6">
-            <p className="text-gray-600 text-sm mb-2">
-              Didn't receive the code?
+          {/* Title and Description */}
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Enter Your Phone Number</h2>
+            <p className="text-gray-600 text-sm leading-relaxed">
+              We'll send you a 6-digit verification code to confirm your phone number
             </p>
-            {canResend ? (
-              <button
-                onClick={handleResendCode}
-                className="text-blue-600 font-semibold hover:text-blue-800"
-                disabled={isLoading}
+          </div>
+
+          {/* Phone Number Input */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Phone Number
+            </label>
+            <div className="flex space-x-3">
+              <select
+                value={countryCode}
+                onChange={(e) => setCountryCode(e.target.value)}
+                className="w-20 px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
               >
-                Resend Code
-              </button>
-            ) : (
-              <p className="text-gray-500 text-sm">
-                Resend code in {resendCountdown}s
-              </p>
-            )}
+                <option value="+91">IN +91</option>
+                <option value="+1">US +1</option>
+                <option value="+44">UK +44</option>
+                <option value="+61">AU +61</option>
+              </select>
+              <input
+                type="tel"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Enter 10-digit mobile number"
+                maxLength="10"
+              />
+            </div>
           </div>
 
-          {/* Help Text */}
-          <div className="text-center mt-6 p-4 bg-blue-50 rounded-lg">
-            <p className="text-blue-800 text-sm">
-              💡 <strong>Development Mode:</strong> Use code <span className="font-mono bg-blue-100 px-2 py-1 rounded">123456</span> to verify
-            </p>
+          {/* Information Section */}
+          <div className="bg-blue-50 rounded-lg p-4 mb-6">
+            <div className="flex items-start space-x-3">
+              <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span className="text-white text-xs">i</span>
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900 mb-1">
+                  Why do we need this?
+                </h3>
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  Your phone number helps us verify your identity and send important updates about your deliveries and earnings.
+                </p>
+              </div>
+            </div>
           </div>
-        </div>
 
-        {/* Back Button */}
-        <div className="text-center mt-6">
+          {/* Terms Text */}
+          <p className="text-xs text-gray-500 text-center mb-8 leading-relaxed">
+            By continuing, you agree to receive SMS messages from Phoenix Prime. Message and data rates may apply.
+          </p>
+
+          {/* Send Verification Code Button */}
           <button
-            onClick={() => navigate(fromRegistration ? '/register' : '/profile')}
-            className="text-blue-200 text-sm hover:text-white"
-            disabled={isLoading}
+            onClick={handleSendCode}
+            disabled={!phoneNumber.trim() || isLoading}
+            className={`w-full py-3 px-4 rounded-lg font-semibold transition-colors ${
+              phoneNumber.trim() && !isLoading 
+                ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
           >
-            ← Go Back
+            {isLoading ? (
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-4 h-4 border-2 border-gray-500 border-t-transparent rounded-full animate-spin"></div>
+                Sending Code...
+              </div>
+            ) : (
+              'Send Verification Code'
+            )}
           </button>
         </div>
       </div>

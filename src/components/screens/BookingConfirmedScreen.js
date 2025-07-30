@@ -155,7 +155,7 @@ const BookingConfirmedScreen = ({ jobData, onDownloadPDF, onViewJobs, onNewBooki
   const shouldShowDeliveryQR = jobData.jobType !== 'multi-pickup';
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 max-w-sm mx-auto">
       <Header title="Booking Confirmed" showBack={false} />
       
       <div className="p-4 space-y-6">

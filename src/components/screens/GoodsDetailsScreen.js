@@ -578,7 +578,7 @@ const GoodsDetailsScreen = ({
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 max-w-sm mx-auto">
       <Header title={getTitle()} onBack={onBack} />
       <ProgressBar
         currentStep={3}

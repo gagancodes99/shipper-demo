@@ -59,7 +59,7 @@ const ReviewScreen = ({ jobData, onNext, onBack, onEditPickup, onEditDelivery, o
   const estimatedTime = "2-4 hours";
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 max-w-sm mx-auto">
       <Header title="Review & Confirm" onBack={onBack} />
       <ProgressBar currentStep={6} totalSteps={8} stepNames={['Job Type', 'Location Count', 'Location & Goods', 'Vehicle', 'Transfer', 'Review', 'Payment', 'Confirmation']} />
       

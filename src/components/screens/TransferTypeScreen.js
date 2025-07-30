@@ -17,7 +17,7 @@ import ProgressBar from '../ui/ProgressBar';
  */
 const TransferTypeScreen = ({ onNext, onBack }) => {
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 max-w-sm mx-auto">
       <Header title="Transfer Type" onBack={onBack} />
       <ProgressBar currentStep={5} totalSteps={8} stepNames={['Job Type', 'Location Count', 'Location & Goods', 'Vehicle', 'Transfer', 'Review', 'Payment', 'Confirmation']} />
       

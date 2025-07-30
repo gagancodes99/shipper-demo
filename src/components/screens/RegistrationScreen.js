@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 
 /**
  * RegistrationScreen - User registration screen
@@ -115,7 +115,7 @@ const RegistrationScreen = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600">
+    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 max-w-sm mx-auto">
       <div className="px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">

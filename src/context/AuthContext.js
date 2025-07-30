@@ -53,42 +53,108 @@ export const AuthProvider = ({ children }) => {
 
   /**
    * Login function - authenticates user and stores data
-   * @param {Object} userData - User data from login/registration
+   * @param {Object} credentials - Login credentials (email/password) or user data
    * @returns {Promise<boolean>} - Success status
    */
-  const login = async (userData) => {
+  const login = async (credentials) => {
     try {
-      // In a real app, this would make an API call
-      // For now, we'll simulate authentication
-      
-      const userWithDefaults = {
-        id: userData.id || Date.now(),
-        email: userData.email,
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        phone: userData.phone,
-        businessName: userData.businessName || '',
-        abn: userData.abn || '',
-        businessAddress: userData.businessAddress || '',
-        businessPhone: userData.businessPhone || '',
-        avatar: userData.avatar || null,
-        createdAt: userData.createdAt || new Date().toISOString(),
-        preferences: {
-          notifications: true,
-          emailUpdates: true,
-          smsUpdates: false,
-          ...userData.preferences
+      // Demo login credentials
+      const demoUsers = {
+        'demo@phoenixprime.com': {
+          password: 'demo123',
+          userData: {
+            id: 1,
+            email: 'demo@phoenixprime.com',
+            firstName: 'John',
+            lastName: 'Smith',
+            phone: '+61 400 123 456',
+            businessName: 'Phoenix Prime Logistics',
+            abn: 'ABN 12 345 678 901',
+            businessAddress: '123 George Street, Sydney NSW 2000',
+            businessPhone: '+61 2 9876 5432',
+            avatar: null,
+            createdAt: '2024-01-01T00:00:00.000Z'
+          }
+        },
+        'admin@phoenixprime.com': {
+          password: 'admin123',
+          userData: {
+            id: 2,
+            email: 'admin@phoenixprime.com',
+            firstName: 'Sarah',
+            lastName: 'Johnson',
+            phone: '+61 400 987 654',
+            businessName: 'Phoenix Prime Admin',
+            abn: 'ABN 98 765 432 109',
+            businessAddress: '456 Collins Street, Melbourne VIC 3000',
+            businessPhone: '+61 3 1234 5678',
+            avatar: null,
+            createdAt: '2024-01-01T00:00:00.000Z'
+          }
         }
       };
 
-      setUser(userWithDefaults);
-      setIsAuthenticated(true);
-      
-      // Store in localStorage for persistence
-      localStorage.setItem('phoenixPrime_user', JSON.stringify(userWithDefaults));
-      localStorage.setItem('phoenixPrime_isAuthenticated', 'true');
-      
-      return true;
+      // Check if it's a login attempt with email/password
+      if (credentials.email && credentials.password) {
+        const demoUser = demoUsers[credentials.email.toLowerCase()];
+        
+        if (demoUser && demoUser.password === credentials.password) {
+          // Use demo user data
+          const userData = demoUser.userData;
+          
+          const userWithDefaults = {
+            ...userData,
+            preferences: {
+              notifications: true,
+              emailUpdates: true,
+              smsUpdates: false,
+              ...userData.preferences
+            }
+          };
+
+          setUser(userWithDefaults);
+          setIsAuthenticated(true);
+          
+          // Store in localStorage for persistence
+          localStorage.setItem('phoenixPrime_user', JSON.stringify(userWithDefaults));
+          localStorage.setItem('phoenixPrime_isAuthenticated', 'true');
+          
+          return true;
+        } else {
+          // Invalid credentials
+          return false;
+        }
+      } else {
+        // Registration or direct user data (existing functionality)
+        const userWithDefaults = {
+          id: credentials.id || Date.now(),
+          email: credentials.email,
+          firstName: credentials.firstName,
+          lastName: credentials.lastName,
+          phone: credentials.phone,
+          businessName: credentials.businessName || '',
+          abn: credentials.abn || '',
+          businessAddress: credentials.businessAddress || '',
+          businessPhone: credentials.businessPhone || '',
+          avatar: credentials.avatar || null,
+          createdAt: credentials.createdAt || new Date().toISOString(),
+          preferences: {
+            notifications: true,
+            emailUpdates: true,
+            smsUpdates: false,
+            ...credentials.preferences
+          }
+        };
+
+        setUser(userWithDefaults);
+        setIsAuthenticated(true);
+        
+        // Store in localStorage for persistence
+        localStorage.setItem('phoenixPrime_user', JSON.stringify(userWithDefaults));
+        localStorage.setItem('phoenixPrime_isAuthenticated', 'true');
+        
+        return true;
+      }
     } catch (error) {
       console.error('Login error:', error);
       return false;

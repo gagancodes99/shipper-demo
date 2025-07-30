@@ -14,7 +14,7 @@ import React from 'react';
  */
 const WelcomeScreen = ({ onGetStarted, onSignIn }) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-white max-w-sm mx-auto">
       {/* Header with gradient background */}
       <div className="bg-gradient-to-r from-blue-500 via-blue-600 to-purple-600 p-4 text-white shadow-lg">
         <div className="flex items-center justify-center">

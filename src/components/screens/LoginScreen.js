@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 
 /**
  * LoginScreen - User authentication screen
@@ -66,12 +66,12 @@ const LoginScreen = () => {
     
     if (!validateForm()) return;
     
-    const result = await login(formData);
+    const success = await login(formData);
     
-    if (result.success) {
+    if (success) {
       navigate(from, { replace: true });
     } else {
-      setErrors({ general: result.error || 'Login failed. Please try again.' });
+      setErrors({ general: 'Login failed. Please try again.' });
     }
   };
 
@@ -81,17 +81,27 @@ const LoginScreen = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600">
-      <div className="px-4 py-8 flex flex-col justify-center min-h-screen">
+    <div className="min-h-screen bg-white max-w-sm mx-auto">
+      <div className="px-4 py-8 flex flex-col justify-center min-h-screen max-w-sm mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="text-4xl mb-4">🚚</div>
-          <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
-          <p className="text-blue-100">Sign in to your Phoenix Prime account</p>
+          {/* Phoenix Prime Logo */}
+          <div className="mb-6">
+            <svg width="80" height="40" viewBox="0 0 200 100" className="mx-auto mb-4">
+              {/* Orange arrow part */}
+              <path d="M20 30 L80 30 L100 50 L80 70 L20 70 L40 50 Z" fill="#FF6B35"/>
+              <path d="M30 40 L70 40 L80 50 L70 60 L30 60 L40 50 Z" fill="#FF6B35"/>
+              <path d="M40 45 L65 45 L70 50 L65 55 L40 55 L45 50 Z" fill="#FF6B35"/>
+              {/* Dark blue arrow part */}
+              <path d="M90 30 L150 30 L170 50 L150 70 L90 70 L110 50 Z" fill="#2C3E50"/>
+            </svg>
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back</h1>
+          <p className="text-gray-600 text-sm">Sign in to your Phoenix Prime account</p>
         </div>
 
         {/* Login Form */}
-        <div className="bg-white rounded-2xl p-6 shadow-xl">
+        <div className="space-y-4">
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* General Error */}
             {errors.general && (
@@ -168,7 +178,7 @@ const LoginScreen = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-4 rounded-lg font-semibold text-lg hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-black text-white py-3 px-4 rounded-lg font-semibold text-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center">
@@ -181,55 +191,28 @@ const LoginScreen = () => {
             </button>
           </form>
 
-          {/* Divider */}
-          <div className="my-6 flex items-center">
-            <div className="flex-1 border-t border-gray-300"></div>
-            <span className="px-4 text-gray-500 text-sm">or continue with</span>
-            <div className="flex-1 border-t border-gray-300"></div>
+          {/* Sign Up Link */}
+          <div className="text-center mt-6">
+            <p className="text-gray-600 text-sm">
+              Don't have an account?{' '}
+              <Link
+                to="/register"
+                className="text-blue-600 font-semibold hover:text-blue-800"
+              >
+                Sign up here
+              </Link>
+            </p>
           </div>
 
-          {/* Social Login */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Back to Welcome */}
+          <div className="text-center mt-4">
             <button
-              onClick={() => handleSocialLogin('google')}
-              className="flex items-center justify-center py-3 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              disabled={isLoading}
+              onClick={() => navigate('/')}
+              className="text-gray-500 text-sm hover:text-gray-700"
             >
-              <span className="text-xl mr-2">🟦</span>
-              <span className="text-sm font-medium text-gray-700">Google</span>
-            </button>
-            <button
-              onClick={() => handleSocialLogin('facebook')}
-              className="flex items-center justify-center py-3 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              disabled={isLoading}
-            >
-              <span className="text-xl mr-2">📘</span>
-              <span className="text-sm font-medium text-gray-700">Facebook</span>
+              ← Back to Welcome
             </button>
           </div>
-        </div>
-
-        {/* Sign Up Link */}
-        <div className="text-center mt-6">
-          <p className="text-blue-100">
-            Don't have an account?{' '}
-            <Link
-              to="/register"
-              className="text-white font-semibold underline hover:text-blue-200"
-            >
-              Sign up here
-            </Link>
-          </p>
-        </div>
-
-        {/* Back to Welcome */}
-        <div className="text-center mt-4">
-          <button
-            onClick={() => navigate('/')}
-            className="text-blue-200 text-sm hover:text-white"
-          >
-            ← Back to Welcome
-          </button>
         </div>
       </div>
     </div>

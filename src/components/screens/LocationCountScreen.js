@@ -63,7 +63,7 @@ const LocationCountScreen = ({ jobType, onNext, onBack, jobData = {} }) => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 max-w-sm mx-auto">
       <Header title={getTitle()} onBack={onBack} />
       <ProgressBar currentStep={2} totalSteps={8} stepNames={['Job Type', 'Location Count', 'Location & Goods', 'Vehicle', 'Transfer', 'Review', 'Payment', 'Confirmation']} />
       

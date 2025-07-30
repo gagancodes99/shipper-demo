@@ -323,7 +323,7 @@ const MyJobsScreen = ({ onViewJobDetails, onTrackJob, onBack, onContactDriver })
   const jobsToDisplay = getJobsToDisplay().slice(0, displayedJobs);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-white max-w-sm mx-auto">
       {/* Header Section */}
       <div className="bg-white shadow-sm border-b border-gray-100">
         <div className="px-4 py-4">

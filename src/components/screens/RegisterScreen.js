@@ -1,35 +1,35 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 /**
- * RegisterScreen - User registration screen
+ * RegisterScreen - User registration screen with 3-step flow
  * 
  * Features:
- * - Multi-step registration form
- * - Personal and business information
- * - Form validation
- * - Error handling
+ * - 3-step registration process
+ * - Personal information, business details, and security setup
+ * - Form validation and error handling
+ * - Mobile-first design matching the app's clean aesthetic
  */
-const RegisterScreen = ({ onBack, onLogin }) => {
+const RegisterScreen = () => {
+  const navigate = useNavigate();
   const { register } = useAuth();
   
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     // Personal Information
-    firstName: '',
-    lastName: '',
+    fullName: '',
     email: '',
     phone: '',
+    
+    // Business Information
+    companyName: '',
+    businessType: 'E-commerce Store',
+    businessAddress: '',
+    
+    // Security & Preferences
     password: '',
     confirmPassword: '',
-    
-    // Business Information (optional)
-    businessName: '',
-    abn: '',
-    businessAddress: '',
-    businessPhone: '',
-    
-    // Terms
     acceptTerms: false,
     acceptMarketing: false
   });
@@ -40,12 +40,8 @@ const RegisterScreen = ({ onBack, onLogin }) => {
   const validateStep1 = () => {
     const newErrors = {};
 
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = 'First name is required';
-    }
-
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required';
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = 'Full name is required';
     }
 
     if (!formData.email.trim()) {
@@ -58,6 +54,28 @@ const RegisterScreen = ({ onBack, onLogin }) => {
       newErrors.phone = 'Phone number is required';
     }
 
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateStep2 = () => {
+    const newErrors = {};
+
+    if (!formData.companyName.trim()) {
+      newErrors.companyName = 'Company name is required';
+    }
+
+    if (!formData.businessAddress.trim()) {
+      newErrors.businessAddress = 'Business address is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateStep3 = () => {
+    const newErrors = {};
+
     if (!formData.password.trim()) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 6) {
@@ -66,18 +84,6 @@ const RegisterScreen = ({ onBack, onLogin }) => {
 
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const validateStep2 = () => {
-    const newErrors = {};
-
-    // Business information is optional, but if ABN is provided, business name should be too
-    if (formData.abn && !formData.businessName.trim()) {
-      newErrors.businessName = 'Business name is required when ABN is provided';
     }
 
     if (!formData.acceptTerms) {
@@ -91,21 +97,25 @@ const RegisterScreen = ({ onBack, onLogin }) => {
   const handleNext = () => {
     if (currentStep === 1 && validateStep1()) {
       setCurrentStep(2);
+    } else if (currentStep === 2 && validateStep2()) {
+      setCurrentStep(3);
     }
   };
 
   const handleBack = () => {
-    if (currentStep === 2) {
+    if (currentStep === 3) {
+      setCurrentStep(2);
+    } else if (currentStep === 2) {
       setCurrentStep(1);
     } else {
-      onBack();
+      navigate('/welcome');
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!validateStep2()) {
+    if (!validateStep3()) {
       return;
     }
 
@@ -113,7 +123,19 @@ const RegisterScreen = ({ onBack, onLogin }) => {
     setErrors({});
 
     try {
-      const success = await register(formData);
+      // Transform the data to match the expected format
+      const registrationData = {
+        firstName: formData.fullName.split(' ')[0] || formData.fullName,
+        lastName: formData.fullName.split(' ').slice(1).join(' ') || '',
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+        businessName: formData.companyName,
+        businessAddress: formData.businessAddress,
+        acceptMarketing: formData.acceptMarketing
+      };
+
+      const success = await register(registrationData);
       
       if (!success) {
         setErrors({ general: 'Registration failed. Please try again.' });
@@ -136,300 +158,381 @@ const RegisterScreen = ({ onBack, onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col max-w-sm mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between p-4">
+      <div className="flex items-center justify-between p-4 bg-white border-b">
         <button
           onClick={handleBack}
-          className="text-white/80 hover:text-white flex items-center gap-2"
+          className="text-gray-600 hover:text-gray-800"
         >
-          <span>←</span>
-          <span>Back</span>
+          ←
         </button>
-        <div className="flex items-center gap-2">
-          <div className={`w-2 h-2 rounded-full ${currentStep >= 1 ? 'bg-white' : 'bg-white/30'}`}></div>
-          <div className={`w-2 h-2 rounded-full ${currentStep >= 2 ? 'bg-white' : 'bg-white/30'}`}></div>
+        
+        <div className="flex items-center space-x-2">
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+            <span className="text-white text-sm font-semibold">📦</span>
+          </div>
+          <span className="font-semibold text-gray-900">Phoenix Prime</span>
+        </div>
+        
+        <div className="w-6"></div>
+      </div>
+
+      {/* Step Indicator */}
+      <div className="px-4 py-6 bg-white">
+        <div className="flex items-center justify-center space-x-4">
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+            currentStep >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
+          }`}>
+            {currentStep > 1 ? '✓' : '1'}
+          </div>
+          <div className={`w-16 h-1 ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+            currentStep >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
+          }`}>
+            {currentStep > 2 ? '✓' : '2'}
+          </div>
+          <div className={`w-16 h-1 ${currentStep >= 3 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+            currentStep >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
+          }`}>
+            3
+          </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center px-4">
-        <div className="w-full max-w-md">
-          {/* Title */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
-            <p className="text-white/80">
-              {currentStep === 1 ? 'Let\'s start with your personal information' : 'Business details (optional)'}
-            </p>
-          </div>
-
-          {/* Form */}
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-            {/* General Error */}
-            {errors.general && (
-              <div className="bg-red-500/20 border border-red-500/50 text-red-200 p-3 rounded-lg text-sm mb-4">
-                {errors.general}
+      <div className="flex-1 px-4 py-6">
+        <div className="w-full max-w-sm mx-auto">
+          
+          {/* Step 1: Personal Information */}
+          {currentStep === 1 && (
+            <div>
+              <div className="text-center mb-8">
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">Personal Information</h1>
+                <p className="text-gray-600 text-sm">Let's start with your basic details</p>
               </div>
-            )}
 
-            {/* Step 1: Personal Information */}
-            {currentStep === 1 && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm font-medium text-white mb-1">
-                      First Name
-                    </label>
+              <div className="space-y-6">
+                {/* General Error */}
+                {errors.general && (
+                  <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg text-sm mb-4">
+                    {errors.general}
+                  </div>
+                )}
+
+                {/* Full Name Field */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <span className="text-gray-400">👤</span>
+                    </div>
                     <input
                       type="text"
-                      value={formData.firstName}
-                      onChange={(e) => handleInputChange('firstName', e.target.value)}
-                      className={`w-full p-3 rounded-lg border bg-white/10 text-white placeholder-white/60 focus:ring-2 focus:ring-white/30 focus:border-white/30 ${
-                        errors.firstName ? 'border-red-500/50' : 'border-white/20'
+                      value={formData.fullName}
+                      onChange={(e) => handleInputChange('fullName', e.target.value)}
+                      className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                        errors.fullName ? 'border-red-300' : 'border-gray-300'
                       }`}
-                      placeholder="John"
+                      placeholder="Enter your full name"
                     />
-                    {errors.firstName && (
-                      <p className="text-red-200 text-xs mt-1">{errors.firstName}</p>
-                    )}
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-white mb-1">
-                      Last Name
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.lastName}
-                      onChange={(e) => handleInputChange('lastName', e.target.value)}
-                      className={`w-full p-3 rounded-lg border bg-white/10 text-white placeholder-white/60 focus:ring-2 focus:ring-white/30 focus:border-white/30 ${
-                        errors.lastName ? 'border-red-500/50' : 'border-white/20'
-                      }`}
-                      placeholder="Doe"
-                    />
-                    {errors.lastName && (
-                      <p className="text-red-200 text-xs mt-1">{errors.lastName}</p>
-                    )}
-                  </div>
+                  {errors.fullName && (
+                    <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>
+                  )}
                 </div>
 
+                {/* Email Field */}
                 <div>
-                  <label className="block text-sm font-medium text-white mb-1">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    className={`w-full p-3 rounded-lg border bg-white/10 text-white placeholder-white/60 focus:ring-2 focus:ring-white/30 focus:border-white/30 ${
-                      errors.email ? 'border-red-500/50' : 'border-white/20'
-                    }`}
-                    placeholder="john@example.com"
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <span className="text-gray-400">✉️</span>
+                    </div>
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                        errors.email ? 'border-red-300' : 'border-gray-300'
+                      }`}
+                      placeholder="Enter your email address"
+                    />
+                  </div>
                   {errors.email && (
-                    <p className="text-red-200 text-sm mt-1">{errors.email}</p>
+                    <p className="text-red-500 text-xs mt-1">{errors.email}</p>
                   )}
                 </div>
 
+                {/* Phone Field */}
                 <div>
-                  <label className="block text-sm font-medium text-white mb-1">
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    className={`w-full p-3 rounded-lg border bg-white/10 text-white placeholder-white/60 focus:ring-2 focus:ring-white/30 focus:border-white/30 ${
-                      errors.phone ? 'border-red-500/50' : 'border-white/20'
-                    }`}
-                    placeholder="+61 400 123 456"
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <span className="text-gray-400">📞</span>
+                    </div>
+                    <input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                        errors.phone ? 'border-red-300' : 'border-gray-300'
+                      }`}
+                      placeholder="+1 (555) 123-4567"
+                    />
+                  </div>
                   {errors.phone && (
-                    <p className="text-red-200 text-sm mt-1">{errors.phone}</p>
+                    <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
                   )}
                 </div>
 
+                {/* Continue Button */}
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  className="w-full bg-black text-white py-3 px-4 rounded-lg font-semibold hover:bg-gray-800 transition-colors mt-8"
+                >
+                  Continue
+                </button>
+
+                {/* Sign In Link */}
+                <div className="text-center mt-6">
+                  <p className="text-gray-600 text-sm">
+                    Already have an account?{' '}
+                    <button
+                      onClick={() => navigate('/login')}
+                      className="text-blue-600 font-semibold hover:underline"
+                    >
+                      Sign In
+                    </button>
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: Business Information */}
+          {currentStep === 2 && (
+            <div>
+              <div className="text-center mb-8">
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">Business Information</h1>
+                <p className="text-gray-600 text-sm">Tell us about your business</p>
+              </div>
+
+              <div className="space-y-6">
+                {/* General Error */}
+                {errors.general && (
+                  <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg text-sm mb-4">
+                    {errors.general}
+                  </div>
+                )}
+
+                {/* Company Name Field */}
                 <div>
-                  <label className="block text-sm font-medium text-white mb-1">
-                    Password
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Company Name *</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <span className="text-gray-400">🏢</span>
+                    </div>
+                    <input
+                      type="text"
+                      value={formData.companyName}
+                      onChange={(e) => handleInputChange('companyName', e.target.value)}
+                      className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                        errors.companyName ? 'border-red-300' : 'border-gray-300'
+                      }`}
+                      placeholder="Enter your company name"
+                    />
+                  </div>
+                  {errors.companyName && (
+                    <p className="text-red-500 text-xs mt-1">{errors.companyName}</p>
+                  )}
+                </div>
+
+                {/* Business Type Field */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Business Type *</label>
+                  <select
+                    value={formData.businessType}
+                    onChange={(e) => handleInputChange('businessType', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="E-commerce Store">E-commerce Store</option>
+                    <option value="Retail Business">Retail Business</option>
+                    <option value="Manufacturing">Manufacturing</option>
+                    <option value="Logistics Company">Logistics Company</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                {/* Business Address Field */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Business Address *</label>
+                  <div className="relative">
+                    <div className="absolute top-3 left-0 pl-3 flex items-start pointer-events-none">
+                      <span className="text-gray-400">📍</span>
+                    </div>
+                    <textarea
+                      value={formData.businessAddress}
+                      onChange={(e) => handleInputChange('businessAddress', e.target.value)}
+                      className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                        errors.businessAddress ? 'border-red-300' : 'border-gray-300'
+                      }`}
+                      rows="3"
+                      placeholder="Enter your complete business address"
+                    />
+                  </div>
+                  {errors.businessAddress && (
+                    <p className="text-red-500 text-xs mt-1">{errors.businessAddress}</p>
+                  )}
+                </div>
+
+                {/* Continue Button */}
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  className="w-full bg-black text-white py-3 px-4 rounded-lg font-semibold hover:bg-gray-800 transition-colors mt-8"
+                >
+                  Continue
+                </button>
+
+                {/* Sign In Link */}
+                <div className="text-center mt-6">
+                  <p className="text-gray-600 text-sm">
+                    Already have an account?{' '}
+                    <button
+                      onClick={() => navigate('/login')}
+                      className="text-blue-600 font-semibold hover:underline"
+                    >
+                      Sign In
+                    </button>
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Security & Preferences */}
+          {currentStep === 3 && (
+            <div>
+              <div className="text-center mb-8">
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">Security & Preferences</h1>
+                <p className="text-gray-600 text-sm">Set up your account security</p>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* General Error */}
+                {errors.general && (
+                  <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg text-sm mb-4">
+                    {errors.general}
+                  </div>
+                )}
+
+                {/* Password Field */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Password *</label>
                   <input
                     type="password"
                     value={formData.password}
                     onChange={(e) => handleInputChange('password', e.target.value)}
-                    className={`w-full p-3 rounded-lg border bg-white/10 text-white placeholder-white/60 focus:ring-2 focus:ring-white/30 focus:border-white/30 ${
-                      errors.password ? 'border-red-500/50' : 'border-white/20'
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      errors.password ? 'border-red-300' : 'border-gray-300'
                     }`}
-                    placeholder="At least 6 characters"
+                    placeholder="Create a strong password"
                   />
                   {errors.password && (
-                    <p className="text-red-200 text-sm mt-1">{errors.password}</p>
+                    <p className="text-red-500 text-xs mt-1">{errors.password}</p>
                   )}
                 </div>
 
+                {/* Confirm Password Field */}
                 <div>
-                  <label className="block text-sm font-medium text-white mb-1">
-                    Confirm Password
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Confirm Password *</label>
                   <input
                     type="password"
                     value={formData.confirmPassword}
                     onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                    className={`w-full p-3 rounded-lg border bg-white/10 text-white placeholder-white/60 focus:ring-2 focus:ring-white/30 focus:border-white/30 ${
-                      errors.confirmPassword ? 'border-red-500/50' : 'border-white/20'
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
                     }`}
-                    placeholder="Repeat your password"
+                    placeholder="Confirm your password"
                   />
                   {errors.confirmPassword && (
-                    <p className="text-red-200 text-sm mt-1">{errors.confirmPassword}</p>
+                    <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>
                   )}
                 </div>
 
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  className="w-full bg-white text-blue-600 py-3 px-4 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
-                >
-                  Continue
-                </button>
-              </div>
-            )}
-
-            {/* Step 2: Business Information */}
-            {currentStep === 2 && (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-white mb-1">
-                    Business Name (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.businessName}
-                    onChange={(e) => handleInputChange('businessName', e.target.value)}
-                    className={`w-full p-3 rounded-lg border bg-white/10 text-white placeholder-white/60 focus:ring-2 focus:ring-white/30 focus:border-white/30 ${
-                      errors.businessName ? 'border-red-500/50' : 'border-white/20'
-                    }`}
-                    placeholder="Your Business Name"
-                  />
-                  {errors.businessName && (
-                    <p className="text-red-200 text-sm mt-1">{errors.businessName}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-white mb-1">
-                    ABN (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.abn}
-                    onChange={(e) => handleInputChange('abn', e.target.value)}
-                    className="w-full p-3 rounded-lg border border-white/20 bg-white/10 text-white placeholder-white/60 focus:ring-2 focus:ring-white/30 focus:border-white/30"
-                    placeholder="12345678901"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-white mb-1">
-                    Business Address (Optional)
-                  </label>
-                  <textarea
-                    value={formData.businessAddress}
-                    onChange={(e) => handleInputChange('businessAddress', e.target.value)}
-                    className="w-full p-3 rounded-lg border border-white/20 bg-white/10 text-white placeholder-white/60 focus:ring-2 focus:ring-white/30 focus:border-white/30"
-                    rows="2"
-                    placeholder="Business address"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-white mb-1">
-                    Business Phone (Optional)
-                  </label>
-                  <input
-                    type="tel"
-                    value={formData.businessPhone}
-                    onChange={(e) => handleInputChange('businessPhone', e.target.value)}
-                    className="w-full p-3 rounded-lg border border-white/20 bg-white/10 text-white placeholder-white/60 focus:ring-2 focus:ring-white/30 focus:border-white/30"
-                    placeholder="+61 2 1234 5678"
-                  />
-                </div>
-
-                {/* Terms and Conditions */}
-                <div className="space-y-3 pt-2">
-                  <label className="flex items-start gap-3 cursor-pointer">
+                {/* Terms and Marketing Checkboxes */}
+                <div className="space-y-4">
+                  <label className="flex items-start space-x-3">
                     <input
                       type="checkbox"
                       checked={formData.acceptTerms}
                       onChange={(e) => handleInputChange('acceptTerms', e.target.checked)}
-                      className="mt-1 w-4 h-4 text-blue-600 bg-white/10 border-white/20 rounded focus:ring-blue-500 focus:ring-2"
+                      className="mt-1 w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
                     />
-                    <span className="text-white/80 text-sm">
+                    <span className="text-gray-600 text-sm">
                       I agree to the{' '}
-                      <button type="button" className="text-white underline hover:no-underline">
+                      <button type="button" className="text-blue-600 underline hover:no-underline">
                         Terms of Service
                       </button>{' '}
                       and{' '}
-                      <button type="button" className="text-white underline hover:no-underline">
+                      <button type="button" className="text-blue-600 underline hover:no-underline">
                         Privacy Policy
                       </button>
                     </span>
                   </label>
                   {errors.acceptTerms && (
-                    <p className="text-red-200 text-sm">{errors.acceptTerms}</p>
+                    <p className="text-red-500 text-sm">{errors.acceptTerms}</p>
                   )}
 
-                  <label className="flex items-start gap-3 cursor-pointer">
+                  <label className="flex items-start space-x-3">
                     <input
                       type="checkbox"
                       checked={formData.acceptMarketing}
                       onChange={(e) => handleInputChange('acceptMarketing', e.target.checked)}
-                      className="mt-1 w-4 h-4 text-blue-600 bg-white/10 border-white/20 rounded focus:ring-blue-500 focus:ring-2"
+                      className="mt-1 w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
                     />
-                    <span className="text-white/80 text-sm">
-                      I'd like to receive updates about new features and services (optional)
+                    <span className="text-gray-600 text-sm">
+                      I'd like to receive promotional emails and updates about Phoenix Prime services
                     </span>
                   </label>
                 </div>
 
+                {/* Create Account Button */}
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-white text-blue-600 py-3 px-4 rounded-lg font-semibold hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-black text-white py-3 px-4 rounded-lg font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-8"
                 >
                   {isLoading ? (
                     <div className="flex items-center justify-center gap-2">
-                      <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                       Creating Account...
                     </div>
                   ) : (
                     'Create Account'
                   )}
                 </button>
+
+                {/* Sign In Link */}
+                <div className="text-center mt-6">
+                  <p className="text-gray-600 text-sm">
+                    Already have an account?{' '}
+                    <button
+                      type="button"
+                      onClick={() => navigate('/login')}
+                      className="text-blue-600 font-semibold hover:underline"
+                    >
+                      Sign In
+                    </button>
+                  </p>
+                </div>
               </form>
-            )}
-          </div>
-
-          {/* Login Link */}
-          <div className="text-center mt-6">
-            <p className="text-white/80">
-              Already have an account?{' '}
-              <button
-                onClick={onLogin}
-                className="text-white font-semibold hover:underline"
-              >
-                Sign in here
-              </button>
-            </p>
-          </div>
+            </div>
+          )}
         </div>
-      </div>
-
-      {/* Footer */}
-      <div className="text-center py-4">
-        <p className="text-white/40 text-xs">
-          Join thousands of businesses using Phoenix Prime
-        </p>
       </div>
     </div>
   );

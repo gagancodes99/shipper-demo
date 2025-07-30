@@ -144,39 +144,16 @@ const MainApp = () => {
   );
 };
 
-// Authentication Flow Component
-const AuthFlow = () => {
-  const [currentScreen, setCurrentScreen] = useState('welcome');
-
-  const handleWelcomeLogin = () => setCurrentScreen('login');
-  const handleWelcomeRegister = () => setCurrentScreen('register');
-  const handleBackToWelcome = () => setCurrentScreen('welcome');
-  const handleLoginToRegister = () => setCurrentScreen('register');
-  const handleRegisterToLogin = () => setCurrentScreen('login');
-
-  switch (currentScreen) {
-    case 'login':
-      return (
-        <LoginScreen 
-          onBack={handleBackToWelcome}
-          onRegister={handleLoginToRegister}
-        />
-      );
-    case 'register':
-      return (
-        <RegisterScreen 
-          onBack={handleBackToWelcome}
-          onLogin={handleRegisterToLogin}
-        />
-      );
-    default:
-      return (
-        <WelcomeScreen 
-          onLogin={handleWelcomeLogin}
-          onRegister={handleWelcomeRegister}
-        />
-      );
-  }
+// Authentication Routes Component
+const AuthRoutes = () => {
+  return (
+    <Routes>
+      <Route path="/welcome" element={<WelcomeScreen />} />
+      <Route path="/login" element={<LoginScreen />} />
+      <Route path="/register" element={<RegisterScreen />} />
+      <Route path="*" element={<Navigate to="/welcome" replace />} />
+    </Routes>
+  );
 };
 
 // Main Router Component
@@ -201,10 +178,7 @@ const AppRouter = () => {
             <Route path="/register" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         ) : (
-          <Routes>
-            {/* Authentication routes */}
-            <Route path="/*" element={<AuthFlow />} />
-          </Routes>
+          <AuthRoutes />
         )}
       </div>
     </Router>

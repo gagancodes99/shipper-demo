@@ -171,7 +171,7 @@ const PhoneVerificationScreen = ({
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 max-w-sm mx-auto">
       <Header title="Verify Phone Number" onBack={onBack} />
       
       <div className="p-6">

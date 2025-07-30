@@ -99,7 +99,7 @@ const TransactionsScreen = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gray-50 pb-20 max-w-sm mx-auto">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-6">
         <div className="flex items-center justify-between">

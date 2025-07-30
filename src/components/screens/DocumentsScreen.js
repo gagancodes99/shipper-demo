@@ -144,7 +144,7 @@ const DocumentsScreen = ({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-white max-w-sm mx-auto">
       {/* Header - only show if used as standalone */}
       {onBack && (
         <div className="bg-white shadow-sm border-b border-gray-100">
