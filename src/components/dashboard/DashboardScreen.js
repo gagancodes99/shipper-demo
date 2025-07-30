@@ -34,7 +34,7 @@ const DashboardScreen = ({
   // Mock data for recent jobs
   const recentJobs = [
     {
-      id: '#1001',
+      id: '1001',
       status: 'Active',
       statusColor: 'bg-orange-100 text-orange-800',
       dotColor: 'bg-orange-500',
@@ -45,7 +45,7 @@ const DashboardScreen = ({
       date: 'Today'
     },
     {
-      id: '#1002',
+      id: '1002',
       status: 'Estimated',
       statusColor: 'bg-blue-100 text-blue-800',
       dotColor: 'bg-blue-500',
@@ -56,7 +56,7 @@ const DashboardScreen = ({
       date: 'Tomorrow'
     },
     {
-      id: '#0996',
+      id: '0996',
       status: 'Completed',
       statusColor: 'bg-green-100 text-green-800',
       dotColor: 'bg-green-500',
