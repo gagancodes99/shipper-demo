@@ -129,7 +129,7 @@ const BookingFlow = () => {
         return (
           <JobTypeScreen
             {...commonProps}
-            onNext={handleJobTypeSelect}
+            onSelect={handleJobTypeSelect}
           />
         );
       

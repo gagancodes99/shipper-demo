@@ -101,8 +101,7 @@ const JobsScreen = () => {
   });
 
   const handleJobPress = (jobId) => {
-    // Navigate to job details or open modal
-    console.log('Navigate to job:', jobId);
+    navigate(`/job/${jobId}/tracking`);
   };
 
   const handleNewBooking = () => {

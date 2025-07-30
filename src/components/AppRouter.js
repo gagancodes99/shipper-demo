@@ -10,6 +10,7 @@ import DashboardScreen from './screens/DashboardScreen';
 import JobsScreen from './screens/JobsScreen';
 import TransactionsScreen from './screens/TransactionsScreen';
 import ProfileScreen from './screens/ProfileScreen';
+import JobTrackingScreen from './screens/JobTrackingScreen';
 
 // Import existing booking flow (will be refactored)
 import BookingFlow from './BookingFlow';
@@ -123,6 +124,10 @@ const MainApp = () => {
         <Route 
           path="/jobs" 
           element={<JobsScreen onNewJob={handleNewJob} />} 
+        />
+        <Route 
+          path="/job/:jobId/tracking" 
+          element={<JobTrackingScreen />} 
         />
         <Route 
           path="/transactions" 
