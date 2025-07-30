@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { Bell, Clock, CheckCircle, Truck } from 'lucide-react';
 
 /**
  * DashboardScreen - Main dashboard matching exact design specifications
@@ -40,9 +41,9 @@ const DashboardScreen = ({ onNewJob }) => {
   };
 
   return (
-    <div className="min-h-screen bg-white max-w-sm mx-auto">
+    <div className="min-h-screen bg-gray-50 max-w-sm mx-auto">
       {/* Status Bar */}
-      <div className="flex items-center justify-between px-4 py-2 bg-white text-black text-sm">
+      {/* <div className="flex items-center justify-between px-4 py-2 bg-white text-black text-sm">
         <span className="font-medium">9:41</span>
         <div className="flex items-center space-x-1">
           <div className="flex space-x-1">
@@ -55,16 +56,14 @@ const DashboardScreen = ({ onNewJob }) => {
             <div className="w-1 h-1 bg-black rounded-full absolute top-1 -right-0.5"></div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-4">
         <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
         <div className="relative">
           <button className="p-1">
-            <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM9 6H4l5-5v5zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <Bell className="w-6 h-6 text-gray-700" />
             <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
               <span className="text-white text-xs font-bold">1</span>
             </div>
@@ -75,20 +74,41 @@ const DashboardScreen = ({ onNewJob }) => {
       <div className="px-4 space-y-6">
         {/* Statistics Cards */}
         <div className="grid grid-cols-3 gap-3">
-          <div className="bg-blue-600 rounded-xl p-4 text-center text-white">
-            <div className="text-2xl font-bold mb-1">3</div>
-            <div className="text-sm">Active</div>
+          {/* Active Card */}
+          <div className="bg-white rounded-xl p-4 text-center border border-gray-200">
+            <div className="flex justify-center mb-2">
+              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                <Truck className="w-5 h-5 text-blue-600" />
+              </div>
+            </div>
+            <div className="text-2xl font-bold mb-1 text-gray-900">3</div>
+            <div className="text-sm text-gray-500">Active</div>
           </div>
-          <div className="bg-orange-500 rounded-xl p-4 text-center text-white">
-            <div className="text-2xl font-bold mb-1">2</div>
-            <div className="text-sm">Scheduled</div>
+          
+          {/* Scheduled Card */}
+          <div className="bg-white rounded-xl p-4 text-center border border-gray-200">
+            <div className="flex justify-center mb-2">
+              <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                <Clock className="w-5 h-5 text-orange-600" />
+              </div>
+            </div>
+            <div className="text-2xl font-bold mb-1 text-gray-900">2</div>
+            <div className="text-sm text-gray-500">Scheduled</div>
           </div>
-          <div className="bg-green-500 rounded-xl p-4 text-center text-white">
-            <div className="text-2xl font-bold mb-1">12</div>
-            <div className="text-sm">Completed</div>
+          
+          {/* Completed Card */}
+          <div className="bg-white rounded-xl p-4 text-center border border-gray-200">
+            <div className="flex justify-center mb-2">
+              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+              </div>
+            </div>
+            <div className="text-2xl font-bold mb-1 text-gray-900">12</div>
+            <div className="text-sm text-gray-500">Completed</div>
           </div>
         </div>
 
+        {/* Rest of your component remains the same */}
         {/* Post New Job Button */}
         <button
           onClick={handleNewJob}
@@ -99,7 +119,7 @@ const DashboardScreen = ({ onNewJob }) => {
         </button>
 
         {/* Recent Jobs */}
-        <div className="bg-white">
+        <div className="bg-white p-3">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Recent Jobs</h2>
             <button

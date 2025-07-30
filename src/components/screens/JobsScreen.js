@@ -1,106 +1,23 @@
-import React, { useState } from 'react';
+"use client";
+import React from "react";
 import { useNavigate } from 'react-router-dom';
+import {
+  ArrowLeft,
+  Search,
+  SlidersHorizontal,
+  MoreHorizontal,
+  Phone,
+  Package,
+  Clock,
+  Calendar,
+  MapPin,
+  FileText,
+  Repeat,
+} from "lucide-react";
 
-/**
- * JobsScreen - Job management and tracking interface
- * 
- * Features:
- * - List of all user jobs with filtering
- * - Job status tracking and updates
- * - Search and filter functionality
- * - Job details modal/navigation
- * - Mobile-optimized job cards
- */
-
-const JobsScreen = () => {
-  const navigate = useNavigate();
-  const [activeFilter, setActiveFilter] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
-
-  // Mock jobs data
-  const allJobs = [
-    {
-      id: 'PPS001',
-      type: 'Single Pickup',
-      status: 'In Transit',
-      statusColor: 'bg-blue-100 text-blue-600',
-      pickup: 'Sydney CBD, NSW',
-      delivery: 'Parramatta, NSW',
-      date: '2025-01-29',
-      time: '10:30 AM',
-      value: '$85.00',
-      items: '2 Boxes, 1 Pallet'
-    },
-    {
-      id: 'PPS002',
-      type: 'Multi-Drop',
-      status: 'Delivered',
-      statusColor: 'bg-green-100 text-green-600',
-      pickup: 'Melbourne CBD, VIC',
-      delivery: 'Richmond, VIC + 2 more',
-      date: '2025-01-28',
-      time: '2:15 PM',
-      value: '$145.00',
-      items: '5 Boxes'
-    },
-    {
-      id: 'PPS003',
-      type: 'Multi-Pickup',
-      status: 'Pending',
-      statusColor: 'bg-orange-100 text-orange-600',
-      pickup: 'Brisbane CBD, QLD + 2 more',
-      delivery: 'Gold Coast, QLD',
-      date: '2025-01-30',
-      time: '9:00 AM',
-      value: '$220.00',
-      items: '3 Pallets, 8 Boxes'
-    },
-    {
-      id: 'PPS004',
-      type: 'Single Pickup',
-      status: 'Cancelled',
-      statusColor: 'bg-red-100 text-red-600',
-      pickup: 'Perth CBD, WA',
-      delivery: 'Fremantle, WA',
-      date: '2025-01-27',
-      time: '11:45 AM',
-      value: '$75.00',
-      items: '1 Box'
-    },
-    {
-      id: 'PPS005',
-      type: 'Single Pickup',
-      status: 'Completed',
-      statusColor: 'bg-green-100 text-green-600',
-      pickup: 'Adelaide CBD, SA',
-      delivery: 'Glenelg, SA',
-      date: '2025-01-26',
-      time: '3:30 PM',
-      value: '$95.00',
-      items: '4 Boxes, 2 Bags'
-    }
-  ];
-
-  const filters = [
-    { key: 'all', label: 'All Jobs' },
-    { key: 'pending', label: 'Pending' },
-    { key: 'in_transit', label: 'In Transit' },
-    { key: 'delivered', label: 'Delivered' },
-    { key: 'completed', label: 'Completed' },
-    { key: 'cancelled', label: 'Cancelled' }
-  ];
-
-  const filteredJobs = allJobs.filter(job => {
-    const matchesFilter = activeFilter === 'all' || 
-      job.status.toLowerCase().replace(' ', '_') === activeFilter;
-    const matchesSearch = job.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.pickup.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.delivery.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    return matchesFilter && matchesSearch;
-  });
-
-  const handleJobPress = (jobId) => {
+export default function JobsScreen() {
+    const navigate = useNavigate();
+   const handleJobPress = (jobId) => {
     navigate(`/job/${jobId}/tracking`);
   };
 
@@ -109,142 +26,333 @@ const JobsScreen = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 max-w-sm mx-auto">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">My Jobs</h1>
-            <p className="text-blue-100 mt-1">
-              Track and manage your shipments
-            </p>
-          </div>
-          <button
-            onClick={handleNewBooking}
-            className="bg-white/20 text-white px-4 py-2 rounded-lg font-medium hover:bg-white/30 transition-colors"
-          >
-            + New Job
+    <div className="min-h-screen bg-gray-50 max-w-sm mx-auto flex flex-col">
+      {/* Top Bar */}
+      <header className="flex items-center gap-3 p-4">
+        <button className="p-1 rounded-full hover:bg-gray-100">
+          <ArrowLeft className="w-5 h-5 text-gray-700" />
+        </button>
+        <div className="flex-1">
+          <h1 className="text-base font-semibold text-gray-900">My Jobs</h1>
+          <p className="text-xs text-gray-500 -mt-0.5">Manage all your shipments</p>
+        </div>
+        <div className="w-6 h-6" />
+      </header>
+
+      {/* Search + Filter */}
+      <div className="px-4 flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-1 bg-gray-50 border rounded-xl px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
+          <Search className="w-4 h-4 text-gray-500" />
+          <input
+            type="text"
+            placeholder="Search jobs..."
+            className="flex-1 bg-transparent outline-none text-sm text-gray-700 placeholder-gray-400"
+          />
+        </div>
+        <button className="p-2 border rounded-xl hover:bg-gray-50">
+          <SlidersHorizontal className="w-5 h-5 text-gray-700" />
+        </button>
+      </div>
+
+      {/* Tabs */}
+      <div className="px-4 mt-3">
+        <div className="flex items-center gap-2 text-sm overflow-x-auto pb-2">
+          <button className="px-3 py-1.5 rounded-full bg-blue-50 text-blue-600 font-medium whitespace-nowrap">
+            Active (2)
+          </button>
+          <button className="px-3 py-1.5 rounded-full text-gray-500 hover:bg-gray-100 whitespace-nowrap">
+            Upcoming (0)
+          </button>
+          <button className="px-3 py-1.5 rounded-full text-gray-500 hover:bg-gray-100 whitespace-nowrap">
+            Past (5)
           </button>
         </div>
       </div>
 
-      <div className="px-4 py-6 space-y-4">
-        {/* Search Bar */}
-        <div className="bg-white rounded-lg shadow-sm p-4">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search jobs by ID, pickup, or destination..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-              🔍
+      {/* Job Cards */}
+      <main className="px-4 mt-3 pb-8 space-y-4">
+        {/* First Job Card */}
+        <article 
+          className="rounded-2xl border p-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+          onClick={() => handleJobPress('PP1002')}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold">#PP1002</span>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-600">
+                In Transit
+              </span>
             </div>
+            <button 
+              className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
+              onClick={(e) => {
+                e.stopPropagation();
+                // Handle menu click
+              }}
+            >
+              <MoreHorizontal className="w-5 h-5" />
+            </button>
           </div>
-        </div>
 
-        {/* Filter Tabs */}
-        <div className="bg-white rounded-lg shadow-sm p-4">
-          <div className="flex space-x-2 overflow-x-auto pb-2">
-            {filters.map((filter) => (
-              <button
-                key={filter.key}
-                onClick={() => setActiveFilter(filter.key)}
-                className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${
-                  activeFilter === filter.key
-                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                {filter.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Jobs List */}
-        <div className="space-y-3">
-          {filteredJobs.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-              <div className="text-6xl mb-4">📦</div>
-              <h3 className="text-xl font-bold text-gray-800 mb-2">No Jobs Found</h3>
-              <p className="text-gray-600 mb-4">
-                {searchQuery 
-                  ? 'Try adjusting your search criteria' 
-                  : activeFilter === 'all' 
-                    ? 'You haven\'t created any jobs yet' 
-                    : `No ${activeFilter.replace('_', ' ')} jobs found`
-                }
-              </p>
-              {activeFilter === 'all' && !searchQuery && (
-                <button
-                  onClick={handleNewBooking}
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-lg font-medium"
-                >
-                  Create Your First Job
-                </button>
-              )}
+          {/* Progress */}
+          <div className="mt-2">
+            <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+              <span>Progress</span>
+              <span className="text-gray-800 font-medium">65%</span>
             </div>
-          ) : (
-            filteredJobs.map((job) => (
+            <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
               <div
-                key={job.id}
-                onClick={() => handleJobPress(job.id)}
-                className="bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow cursor-pointer"
-              >
-                {/* Job Header */}
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center space-x-3">
-                    <span className="font-bold text-gray-800">#{job.id}</span>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${job.statusColor}`}>
-                      {job.status}
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-gray-800">{job.value}</p>
-                    <p className="text-xs text-gray-500">{job.date}</p>
-                  </div>
-                </div>
+                className="h-2 bg-blue-500 rounded-full"
+                style={{ width: `65%` }}
+              />
+            </div>
+          </div>
 
-                {/* Job Type */}
-                <div className="mb-3">
-                  <span className="text-sm font-medium text-gray-600 bg-gray-100 px-2 py-1 rounded">
-                    {job.type}
-                  </span>
-                </div>
+          {/* Session Info */}
+          <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
+            <Calendar className="w-4 h-4" />
+            <span>Start* 4.5 * 2020/3</span>
+          </div>
 
-                {/* Pickup & Delivery */}
-                <div className="space-y-2 mb-3">
-                  <div className="flex items-start space-x-3">
-                    <div className="text-green-500 text-sm mt-1">📍</div>
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-500">Pickup</p>
-                      <p className="text-sm font-medium text-gray-800">{job.pickup}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <div className="text-red-500 text-sm mt-1">📍</div>
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-500">Delivery</p>
-                      <p className="text-sm font-medium text-gray-800">{job.delivery}</p>
-                    </div>
-                  </div>
-                </div>
+          {/* Pickup */}
+          <div className="mt-3 grid grid-cols-[18px_1fr] gap-x-2 gap-y-0.5 text-xs">
+            <span className="text-green-500 mt-1">
+              <MapPin className="w-4 h-4" />
+            </span>
+            <div className="text-gray-500">Pickup</div>
+            <span />
+            <div className="text-gray-900">TOP Supply Centre, Industrial Zone</div>
+            <span />
+            <div className="text-gray-500 flex items-center gap-1">
+              <Phone className="w-3 h-3" />
+              Sarah Maker • +1 (800) 208-3000
+            </div>
+          </div>
 
-                {/* Items & Time */}
-                <div className="flex items-center justify-between text-sm text-gray-600">
-                  <span>📦 {job.items}</span>
-                  <span>🕐 {job.time}</span>
-                </div>
+          {/* Destination */}
+          <div className="mt-3 grid grid-cols-[18px_1fr] gap-x-2 gap-y-0.5 text-xs">
+            <span className="text-red-500 mt-1">
+              <MapPin className="w-4 h-4" />
+            </span>
+            <div className="text-gray-500">Destination</div>
+            <span />
+            <div className="text-gray-900">321 Road Slave, Mall District</div>
+            <span />
+            <div className="text-gray-500 flex items-center gap-1">
+              <Phone className="w-3 h-3" />
+              Namphill Lot • +1 (800) 806-063
+            </div>
+          </div>
+
+          {/* Parcel Card */}
+          <div className="mt-3 bg-blue-50 rounded-xl p-3 text-xs">
+            <div className="flex items-center gap-2 text-blue-700 font-medium mb-2">
+              <Package className="w-4 h-4" />
+              <span>Furniture Delivery</span>
+            </div>
+            <div className="grid grid-cols-2 gap-4 text-gray-700">
+              <div>
+                <p className="text-[11px] text-gray-500">Apply</p>
+                <p className="font-semibold">200€</p>
               </div>
-            ))
-          )}
-        </div>
-      </div>
+              <div>
+                <p className="text-[11px] text-gray-500">Repeat</p>
+                <p className="font-semibold">200€</p>
+              </div>
+            </div>
+          </div>
+
+          {/* ETA + Actions */}
+          <div className="mt-3">
+            <div className="flex justify-between items-center text-amber-600 bg-amber-50 border border-amber-100 px-3 py-2 rounded-lg text-xs">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                <span className="font-medium">ETA: 30 min</span>
+              </div>
+              <button 
+                className="text-xs text-gray-500 hover:text-gray-700 flex items-center"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // Handle track live click
+                }}
+              >
+                <FileText className="w-4 h-4 mr-1" />
+                Track live
+              </button>
+            </div>
+          </div>
+
+          {/* CTA Buttons */}
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <button 
+              className="bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleJobPress('PP1002');
+              }}
+            >
+              <FileText className="w-4 h-4" />
+              View Details
+            </button>
+            <button 
+              className="border border-gray-300 text-gray-700 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
+              onClick={(e) => {
+                e.stopPropagation();
+                // Handle contact click
+              }}
+            >
+              <Repeat className="w-4 h-4" />
+              Contact
+            </button>
+          </div>
+        </article>
+
+        {/* Second Job Card */}
+        <article 
+          className="rounded-2xl border p-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+          onClick={() => handleJobPress('PPS001')}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold">#PPS001</span>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-600">
+                In Transit
+              </span>
+            </div>
+            <button 
+              className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
+              onClick={(e) => {
+                e.stopPropagation();
+                // Handle menu click
+              }}
+            >
+              <MoreHorizontal className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Progress */}
+          <div className="mt-2">
+            <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+              <span>Progress</span>
+              <span className="text-gray-800 font-medium">45%</span>
+            </div>
+            <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className="h-2 bg-blue-500 rounded-full"
+                style={{ width: `45%` }}
+              />
+            </div>
+          </div>
+
+          {/* Session Info */}
+          <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
+            <Calendar className="w-4 h-4" />
+            <span>Start* 10.5 * 2025/1</span>
+          </div>
+
+          {/* Pickup */}
+          <div className="mt-3 grid grid-cols-[18px_1fr] gap-x-2 gap-y-0.5 text-xs">
+            <span className="text-green-500 mt-1">
+              <MapPin className="w-4 h-4" />
+            </span>
+            <div className="text-gray-500">Pickup</div>
+            <span />
+            <div className="text-gray-900">Sydney CBD, NSW</div>
+            <span />
+            <div className="text-gray-500 flex items-center gap-1">
+              <Phone className="w-3 h-3" />
+              John Smith • +1 (800) 123-456
+            </div>
+          </div>
+
+          {/* Destination */}
+          <div className="mt-3 grid grid-cols-[18px_1fr] gap-x-2 gap-y-0.5 text-xs">
+            <span className="text-red-500 mt-1">
+              <MapPin className="w-4 h-4" />
+            </span>
+            <div className="text-gray-500">Destination</div>
+            <span />
+            <div className="text-gray-900">Parramatta, NSW</div>
+            <span />
+            <div className="text-gray-500 flex items-center gap-1">
+              <Phone className="w-3 h-3" />
+              Jane Doe • +1 (800) 789-012
+            </div>
+          </div>
+
+          {/* Parcel Card */}
+          <div className="mt-3 bg-blue-50 rounded-xl p-3 text-xs">
+            <div className="flex items-center gap-2 text-blue-700 font-medium mb-2">
+              <Package className="w-4 h-4" />
+              <span>General Goods</span>
+            </div>
+            <div className="grid grid-cols-2 gap-4 text-gray-700">
+              <div>
+                <p className="text-[11px] text-gray-500">Apply</p>
+                <p className="font-semibold">$40.00</p>
+              </div>
+              <div>
+                <p className="text-[11px] text-gray-500">Repeat</p>
+                <p className="font-semibold">$45.00</p>
+              </div>
+            </div>
+          </div>
+
+          {/* ETA + Actions */}
+          <div className="mt-3">
+            <div className="flex justify-between items-center text-amber-600 bg-amber-50 border border-amber-100 px-3 py-2 rounded-lg text-xs">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                <span className="font-medium">ETA: 30 min</span>
+              </div>
+              <button 
+                className="text-xs text-gray-500 hover:text-gray-700 flex items-center"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // Handle track live click
+                }}
+              >
+                <FileText className="w-4 h-4 mr-1" />
+                Track live
+              </button>
+            </div>
+          </div>
+
+          {/* CTA Buttons */}
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <button 
+              className="bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleJobPress('PPS001');
+              }}
+            >
+              <FileText className="w-4 h-4" />
+              View Details
+            </button>
+            <button 
+              className="border border-gray-300 text-gray-700 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
+              onClick={(e) => {
+                e.stopPropagation();
+                // Handle contact click
+              }}
+            >
+              <Repeat className="w-4 h-4" />
+              Contact
+            </button>
+          </div>
+        </article>
+
+        {/* Load more button */}
+        <button 
+          className="w-full py-3 text-blue-600 text-sm font-medium hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+          onClick={handleNewBooking}
+        >
+          Create New Job
+        </button>
+      </main>
     </div>
   );
-};
-
-export default JobsScreen;
+}

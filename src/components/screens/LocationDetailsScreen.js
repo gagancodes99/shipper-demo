@@ -171,7 +171,7 @@ const LocationDetailsScreen = ({
       tradingHours: initialData.tradingHours || '',
       appointmentDetails: initialData.appointmentDetails || '' // NEW
     });
-  }, [locationType, locationIndex, initialData, pickupDate]);
+  }, []);
 
   const tradingHoursOptions = [
     '9 AM to 5 PM',

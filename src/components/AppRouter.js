@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import {
+  Home,
+  ClipboardList,
+  CreditCard,
+  BarChart2,
+  User
+} from 'lucide-react';
 
 // Import screen components
 import WelcomeScreen from './screens/WelcomeScreen';
@@ -15,54 +22,38 @@ import JobTrackingScreen from './screens/JobTrackingScreen';
 // Import existing booking flow (will be refactored)
 import BookingFlow from './BookingFlow';
 
-/**
- * AppRouter - Main routing component for the application
- * 
- * Features:
- * - Route protection based on authentication
- * - Bottom navigation for main screens
- * - Integration with existing booking flow
- * - Proper navigation handling
- */
-
 // Bottom Navigation Component
-const BottomNavigation = ({ currentPath, onNavigate, onNewJob }) => {
+const BottomNavigation = ({ currentPath, onNavigate }) => {
   const navItems = [
-    { id: 'dashboard', label: 'Home', icon: '🏠', path: '/dashboard' },
-    { id: 'jobs', label: 'Jobs', icon: '📋', path: '/jobs' },
-    { id: 'new-job', label: 'New Job', icon: '➕', path: '/booking', isSpecial: true },
-    { id: 'transactions', label: 'Payments', icon: '💳', path: '/transactions' },
-    { id: 'profile', label: 'Profile', icon: '👤', path: '/profile' }
+    { id: 'dashboard', label: 'Dashboard', icon: <Home size={20} />, path: '/dashboard' },
+    { id: 'jobs', label: 'Jobs', icon: <ClipboardList size={20} />, path: '/jobs' },
+    { id: 'transactions', label: 'Transactions', icon: <CreditCard size={20} />, path: '/transactions' },
+    { id: 'reporting', label: 'Reporting', icon: <BarChart2 size={20} />, path: '/dashboard' },
+    { id: 'profile', label: 'Profile', icon: <User size={20} />, path: '/profile' }
   ];
 
-  const handleNavClick = (item) => {
-    if (item.id === 'new-job') {
-      onNewJob();
-    } else {
-      onNavigate(item.path);
-    }
-  };
-
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-2 z-40">
+    <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-200 px-4 py-2 z-40 max-w-sm mx-auto ">
       <div className="flex justify-around items-center max-w-md mx-auto">
         {navItems.map((item) => {
-          const isActive = currentPath === item.path || 
-                          (item.id === 'new-job' && currentPath === '/booking');
+          const isActive = currentPath === item.path;
           
           return (
             <button
               key={item.id}
-              onClick={() => handleNavClick(item)}
+              onClick={() => onNavigate(item.path)}
               className={`flex flex-col items-center px-3 py-2 rounded-lg transition-colors ${
-                item.isSpecial
-                  ? 'bg-blue-600 text-white shadow-lg'
-                  : isActive
-                  ? 'bg-blue-100 text-blue-600'
-                  : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
+                isActive
+                  ? 'text-blue-600'
+                  : 'text-gray-500 hover:text-blue-600'
               }`}
             >
-              <span className="text-xl mb-1">{item.icon}</span>
+              <span className={`mb-1 ${isActive ? 'text-blue-600' : 'text-gray-500'}`}>
+                {React.cloneElement(item.icon, {
+                  className: isActive ? 'text-blue-600' : 'text-gray-500',
+                  fill: isActive ? 'currentColor' : 'none'
+                })}
+              </span>
               <span className="text-xs font-medium">{item.label}</span>
             </button>
           );
@@ -104,7 +95,6 @@ const MainApp = () => {
     navigate('/dashboard');
   };
 
-  // If we're in the booking flow, show it without bottom navigation
   if (location.pathname === '/booking' || showBookingFlow) {
     return (
       <BookingFlow 
@@ -115,7 +105,7 @@ const MainApp = () => {
   }
 
   return (
-    <div className="pb-20"> {/* Add padding for bottom navigation */}
+    <div className="pb-20">
       <Routes>
         <Route 
           path="/dashboard" 
@@ -143,7 +133,6 @@ const MainApp = () => {
       <BottomNavigation 
         currentPath={location.pathname}
         onNavigate={navigate}
-        onNewJob={handleNewJob}
       />
     </div>
   );
@@ -170,14 +159,11 @@ const AppRouter = () => {
       <div className="min-h-screen">
         {isAuthenticated ? (
           <Routes>
-            {/* Protected routes */}
             <Route path="/*" element={
               <ProtectedRoute>
                 <MainApp />
               </ProtectedRoute>
             } />
-            
-            {/* Redirect authenticated users away from auth pages */}
             <Route path="/welcome" element={<Navigate to="/dashboard" replace />} />
             <Route path="/login" element={<Navigate to="/dashboard" replace />} />
             <Route path="/register" element={<Navigate to="/dashboard" replace />} />

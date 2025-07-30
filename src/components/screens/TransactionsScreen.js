@@ -101,16 +101,16 @@ const TransactionsScreen = () => {
   return (
     <div className="min-h-screen bg-gray-50 pb-20 max-w-sm mx-auto">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-6">
+      <div className="  px-4 py-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">Transactions</h1>
-            <p className="text-blue-100 mt-1">
+            <p className=" mt-1">
               Track your payments and spending
             </p>
           </div>
           <div className="text-right">
-            <p className="text-blue-100 text-sm">Total Spent</p>
+            <p className=" text-sm">Total Spent</p>
             <p className="text-2xl font-bold">${totalSpent.toFixed(2)}</p>
           </div>
         </div>

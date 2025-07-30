@@ -101,18 +101,18 @@ const ProfileScreen = () => {
   return (
     <div className="min-h-screen bg-gray-50 pb-20 max-w-sm mx-auto">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-6">
+      <div className=" px-4 py-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">Profile</h1>
-            <p className="text-blue-100 mt-1">
+            <p className=" mt-1">
               Manage your account and settings
             </p>
           </div>
           {!isEditing && (
             <button
               onClick={handleEdit}
-              className="bg-white/20 text-white px-4 py-2 rounded-lg font-medium hover:bg-white/30 transition-colors"
+              className="bg-white/20  px-4 py-2 rounded-lg font-medium hover:bg-white/30 transition-colors"
             >
               Edit
             </button>

@@ -516,37 +516,38 @@ const GoodsDetailsScreen = ({
     // Above 30 locations: none available (shouldn't happen with UI restrictions)
     return false;
   };
-
-  const packagingTypes = [
-    { 
-      id: 'pallets', 
-      name: 'Pallets', 
-      icon: '🟫', 
-      description: 'Standard shipping pallets',
-      allowed: isPackagingTypeAllowed('pallets')
-    },
-    { 
-      id: 'boxes', 
-      name: 'Boxes & Cartons', 
-      icon: '📦', 
-      description: 'Packaged boxes and cartons',
-      allowed: isPackagingTypeAllowed('boxes')
-    },
-    { 
-      id: 'bags', 
-      name: 'Bags & Sacks', 
-      icon: '🛍️', 
-      description: 'Bagged or sacked items',
-      allowed: isPackagingTypeAllowed('bags')
-    },
-    { 
-      id: 'others', 
-      name: 'Loose items', 
-      icon: '📋', 
-      description: 'Other packaging types',
-      allowed: isPackagingTypeAllowed('others')
-    }
-  ];
+const packagingTypes = [
+  { 
+    id: 'pallets', 
+    name: 'Pallets', 
+    icon: '🟫', 
+    description: 'Standard shipping pallets',
+    // allowed: relevantLocationCount <= 10 // Pallets only allowed for up to 10 locations
+    allowed: true // Pallets only allowed for up to 10 locations
+  },
+  { 
+    id: 'boxes', 
+    name: 'Boxes & Cartons', 
+    icon: '📦', 
+    description: 'Packaged boxes and cartons',
+    allowed: true // Always allowed
+  },
+  { 
+    id: 'bags', 
+    name: 'Bags & Sacks', 
+    icon: '🛍️', 
+    description: 'Bagged or sacked items',
+    allowed:true// Bags only allowed for up to 10 locations
+    // allowed: relevantLocationCount <= 10 // Bags only allowed for up to 10 locations
+  },
+  { 
+    id: 'others', 
+    name: 'Loose items', 
+    icon: '📋', 
+    description: 'Other packaging types',
+    allowed: true // Always allowed
+  }
+];
 
   const getTitle = () => {
     if (locationType === 'pickup') {
@@ -784,17 +785,17 @@ const GoodsDetailsScreen = ({
           <div className="grid grid-cols-2 gap-3">
             {packagingTypes.map((type) => (
               <div key={type.id} className="space-y-3">
-                <button
-                  onClick={() => handlePackagingToggle(type.id)}
-                  disabled={!type.allowed}
-                  className={`w-full p-4 rounded-xl border transition-all text-left relative ${
-                    !type.allowed
-                      ? "border-red-200 bg-red-50 cursor-not-allowed opacity-60"
-                      : goods.packagingTypes[type.id].selected
-                        ? "border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100"
-                        : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
-                  }`}
-                >
+                 <button
+      onClick={() => type.allowed && handlePackagingToggle(type.id)}
+      disabled={!type.allowed}
+      className={`w-full p-4 rounded-xl border transition-all text-left relative ${
+        !type.allowed
+          ? "border-slate-200 bg-slate-50 cursor-not-allowed opacity-60"
+          : goods.packagingTypes[type.id].selected
+            ? "border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100"
+            : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+      }`}
+    >
                   {goods.packagingTypes[type.id].selected && (
                     <div className="absolute top-2 right-2 w-5 h-5 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
                       <svg
