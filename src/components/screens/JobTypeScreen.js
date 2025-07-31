@@ -2,15 +2,7 @@ import React from 'react';
 import Header from '../ui/Header';
 import ProgressBar from '../ui/ProgressBar';
 
-/**
- * JobTypeScreen component allows users to select the type of shipping service they need
- * 
- * @param {Object} props - Component props
- * @param {Function} props.onSelect - Callback function when a job type is selected
- * @param {Function} props.onViewTransactions - Callback function to navigate to transactions
- * @returns {JSX.Element} Rendered job type selection screen
- */
-const JobTypeScreen = ({ onSelect, onViewTransactions }) => {
+const JobTypeScreen = ({ onSelect, onBack }) => {
   const jobTypes = [
     { id: 'single', label: 'Single Pickup/Drop', icon: '🚚', desc: 'One pickup, one delivery' },
     { id: 'multi-pickup', label: 'Multi-Pickup', icon: '📦', desc: 'Multiple pickups, one delivery' },
@@ -19,11 +11,23 @@ const JobTypeScreen = ({ onSelect, onViewTransactions }) => {
 
   return (
     <div className="min-h-screen bg-slate-50 max-w-sm mx-auto">
-      <Header title="Phoenix Prime Shipper" />
-      <ProgressBar currentStep={1} totalSteps={8} stepNames={['Job Type', 'Location Count', 'Location & Goods', 'Vehicle', 'Transfer', 'Review', 'Payment', 'Confirmation']} />
+      <Header title="Phoenix Prime Shipper" onBack={onBack} />
+      <ProgressBar 
+        currentStep={1} 
+        totalSteps={8} 
+        stepNames={[
+          'Job Type', 
+          'Location Count', 
+          'Location & Goods', 
+          'Vehicle', 
+          'Transfer', 
+          'Review', 
+          'Payment', 
+          'Confirmation'
+        ]} 
+      />
       
       <div className="p-6">
-        {/* Section Header */}
         <div className="bg-gradient-to-r from-blue-500 via-blue-600 to-purple-600 rounded-xl p-4 text-white shadow-lg mb-6">
           <div className="flex items-center">
             <div className="w-8 h-8 mr-3 flex items-center justify-center">
@@ -58,27 +62,9 @@ const JobTypeScreen = ({ onSelect, onViewTransactions }) => {
             </button>
           ))}
         </div>
-
-        {/* Quick Actions */}
-        {onViewTransactions && (
-          <div className="mt-8 p-4 bg-white rounded-xl border border-slate-200">
-            <h3 className="text-lg font-semibold text-slate-900 mb-3">Quick Actions</h3>
-            <button
-              onClick={onViewTransactions}
-              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg p-4 hover:from-purple-700 hover:to-blue-700 transition-all duration-200 flex items-center justify-center gap-3"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <span className="font-semibold">View Transactions</span>
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );
 };
 
-export { JobTypeScreen };
 export default JobTypeScreen;
