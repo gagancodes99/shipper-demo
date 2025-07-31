@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { MapPin, ArrowLeft, Phone, Mail, FileText, Truck, Package, DollarSign, File, Upload } from "lucide-react";
+import { MapPin, ArrowLeft, Phone, Mail, FileText, Truck, Package, Eye, Download, Upload } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function DeliveryTrackingScreen() {
@@ -19,7 +19,7 @@ export default function DeliveryTrackingScreen() {
   };
 
   const MapSection = () => (
-    <div className="bg-gray-100 rounded-lg h-48 flex items-center justify-center relative overflow-hidden">
+    <div className="bg-white rounded-lg h-48 flex items-center justify-center relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-blue-100 to-green-100"></div>
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="absolute top-6 left-6 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-lg z-10"></div>
@@ -171,28 +171,28 @@ export default function DeliveryTrackingScreen() {
               <h3 className="text-sm font-semibold text-gray-700">Package Details</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-xs text-[#4f74dd]">Type:</p>
+                  <p className="text-xs text-[#003366]">Type:</p>
                   <p className="text-sm font-medium">Electronics Package</p>
                 </div>
                 <div>
-                  <p className="text-xs text-[#4f74dd]">Weight:</p>
+                  <p className="text-xs text-[#003366]">Weight:</p>
                   <p className="text-sm font-medium">15 lbs</p>
                 </div>
                 <div>
-                  <p className="text-xs text-[#4f74dd]">Dimensions:</p>
+                  <p className="text-xs text-[#003366]">Dimensions:</p>
                   <p className="text-sm font-medium">12" x 8" x 6"</p>
                 </div>
                 <div>
-                  <p className="text-xs text-[#4f74dd]">Value:</p>
+                  <p className="text-xs text-[#003366]">Value:</p>
                   <p className="text-sm font-medium">$1,245</p>
                 </div>
               </div>
               <div className="mt-2">
-                <p className="text-xs text-[#4f74dd]">Description:</p>
+                <p className="text-xs text-[#003366]">Description:</p>
                 <p className="text-sm">Laptop computers (2 units) - Dell XPS 13</p>
               </div>
               <div className="mt-2 bg-[#dbeafe] p-2 rounded">
-                <p className="text-xs text-[#4f74dd]">Special Instructions:</p>
+                <p className="text-xs text-[#003366]">Special Instructions:</p>
                 <div className="text-sm text-[#536dc2] p-2 rounded-lg ">
                   Fragile - Handle with care. Keep upright.
                 </div>
@@ -338,13 +338,29 @@ export default function DeliveryTrackingScreen() {
       <div className="space-y-4">
         {/* Invoice Section */}
         <div className="p-3 rounded-lg border">
-          <div className="flex items-center gap-3">
-            <FileText className="w-5 h-5 text-blue-600" />
-            <div>
-              <p className="text-sm font-medium">Invoice #PP1001</p>
-              <p className="text-xs text-gray-500">Amount: $65.50</p>
-            </div>
-          </div>
+          <div className="flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+  <div className="flex items-center gap-3 flex-1 min-w-0">
+    <FileText className="w-5 h-5 text-blue-600 flex-shrink-0" />
+    <div className="min-w-0">
+      <p className="text-sm font-medium truncate">Invoice #PP1001</p>
+      <p className="text-xs text-gray-500 truncate">Amount: $65.50</p>
+    </div>
+  </div>
+  <div className="flex items-center gap-1">
+    <button 
+      className="p-1.5 text-gray-500 hover:text-blue-600 transition-colors rounded-full hover:bg-gray-200"
+      title="View invoice"
+    >
+      <Eye className="w-4 h-4" />
+    </button>
+    <button 
+      className="p-1.5 text-gray-500 hover:text-blue-600 transition-colors rounded-full hover:bg-gray-200"
+      title="Download invoice"
+    >
+      <Download className="w-4 h-4" />
+    </button>
+  </div>
+</div>
         </div>
         
         {/* Package Photos Section */}

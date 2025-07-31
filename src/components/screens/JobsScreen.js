@@ -13,7 +13,7 @@ import {
   MapPin,
   FileText,
   Repeat,
-  Star,
+  Eye,
   MessageSquare,
 } from "lucide-react";
 export default function JobsScreen() {
@@ -215,7 +215,7 @@ export default function JobsScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 max-w-sm mx-auto flex flex-col">
+    <div className="min-h-screen bg-white max-w-sm mx-auto flex flex-col">
       {/* Top Bar */}
       <header className="flex items-center gap-3 p-4">
         <div className="flex-1">
@@ -481,7 +481,7 @@ export default function JobsScreen() {
                     handleJobPress(job.id);
                   }}
                 >
-                  <FileText className="w-4 h-4" />
+                  <Eye className="w-4 h-4" />
                   View Details
                 </button>
               </div>

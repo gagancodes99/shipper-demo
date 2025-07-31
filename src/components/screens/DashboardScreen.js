@@ -43,7 +43,7 @@ const DashboardScreen = ({ onNewJob }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 max-w-sm mx-auto">
+    <div className="min-h-screen bg-white max-w-sm mx-auto">
       {/* Status Bar */}
       {/* <div className="flex items-center justify-between px-4 py-2 bg-white text-black text-sm">
         <span className="font-medium">9:41</span>
