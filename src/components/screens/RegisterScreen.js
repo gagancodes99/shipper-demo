@@ -148,7 +148,7 @@ const RegisterScreen = () => {
             }`}>
               {currentStep > 1 ? <Check className="h-5 w-5" /> : '1'}
             </div>
-            <span className="text-xs mt-1">Personal</span>
+            {/* <span className="text-xs mt-1">Personal</span> */}
           </div>
           
           <div className={`h-1 flex-1 ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-200'} transition-colors`}></div>
@@ -159,7 +159,7 @@ const RegisterScreen = () => {
             }`}>
               {currentStep > 2 ? <Check className="h-5 w-5" /> : '2'}
             </div>
-            <span className="text-xs mt-1">Business</span>
+            {/* <span className="text-xs mt-1">Business</span> */}
           </div>
           
           <div className={`h-1 flex-1 ${currentStep >= 3 ? 'bg-blue-600' : 'bg-gray-200'} transition-colors`}></div>
@@ -170,7 +170,7 @@ const RegisterScreen = () => {
             }`}>
               3
             </div>
-            <span className="text-xs mt-1">Security</span>
+            {/* <span className="text-xs mt-1">Security</span> */}
           </div>
         </div>
       </div>
