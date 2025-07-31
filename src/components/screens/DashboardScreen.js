@@ -77,8 +77,8 @@ const DashboardScreen = ({ onNewJob }) => {
           {/* Active Card */}
           <div className="bg-white rounded-xl p-4 text-center border border-gray-200">
             <div className="flex justify-center mb-2">
-              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                <Truck className="w-5 h-5 text-blue-600" />
+              <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                <Truck className="w-5 h-5 text-white" />
               </div>
             </div>
             <div className="text-2xl font-bold mb-1 text-gray-900">3</div>
@@ -88,8 +88,8 @@ const DashboardScreen = ({ onNewJob }) => {
           {/* Scheduled Card */}
           <div className="bg-white rounded-xl p-4 text-center border border-gray-200">
             <div className="flex justify-center mb-2">
-              <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                <Clock className="w-5 h-5 text-orange-600" />
+              <div className="w-10 h-10 bg-orange-600 rounded-full flex items-center justify-center">
+                <Clock className="w-5 h-5 text-white" />
               </div>
             </div>
             <div className="text-2xl font-bold mb-1 text-gray-900">2</div>
@@ -99,8 +99,8 @@ const DashboardScreen = ({ onNewJob }) => {
           {/* Completed Card */}
           <div className="bg-white rounded-xl p-4 text-center border border-gray-200">
             <div className="flex justify-center mb-2">
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                <CheckCircle className="w-5 h-5 text-green-600" />
+              <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-5 h-5 text-white" />
               </div>
             </div>
             <div className="text-2xl font-bold mb-1 text-gray-900">12</div>
