@@ -58,28 +58,10 @@ const ProfileScreen = () => {
   };
   const menuItems = [
     {
-      icon: '🔔',
-      title: 'Notifications',
-      subtitle: 'Manage your notification preferences',
-      action: () => console.log('Navigate to notifications')
-    },
-    {
       icon: '💳',
       title: 'Payment Methods',
       subtitle: 'Manage cards and payment options',
       action: () => console.log('Navigate to payment methods')
-    },
-    {
-      icon: '📍',
-      title: 'Saved Addresses',
-      subtitle: 'Manage your frequent locations',
-      action: () => console.log('Navigate to addresses')
-    },
-    {
-      icon: '📋',
-      title: 'Booking History',
-      subtitle: 'View all your past bookings',
-      action: () => console.log('Navigate to booking history')
     },
     {
       icon: '🛡️',
@@ -92,12 +74,6 @@ const ProfileScreen = () => {
       title: 'Help & Support',
       subtitle: 'Get help and contact support',
       action: () => console.log('Navigate to help')
-    },
-    {
-      icon: '⚙️',
-      title: 'App Settings',
-      subtitle: 'Theme, language and preferences',
-      action: () => console.log('Navigate to settings')
     }
   ];
 
