@@ -1,4 +1,5 @@
 import React from 'react';
+import ShipperLogo from '../../assets/shipperlogo.png'; // Adjust the path if needed
 
 const WelcomeScreen = ({ onGetStarted }) => {
   return (
@@ -14,30 +15,13 @@ const WelcomeScreen = ({ onGetStarted }) => {
         {/* Phoenix Prime Logo */}
         <div className="mb-10 transform hover:scale-105 transition-transform duration-300">
           <div className="flex items-center justify-center">
-            {/* Enhanced Logo SVG with animation */}
-            <div className="w-28 h-28 mb-8 animate-float">
-              <svg viewBox="0 0 100 60" className="w-full h-full drop-shadow-lg">
-                <path 
-                  d="M20 15 L45 15 L40 25 L20 25 Z" 
-                  fill="#FF6B35"
-                  className="transition-all duration-500 hover:fill-orange-500"
-                />
-                <path 
-                  d="M20 25 L40 25 L35 35 L20 35 Z" 
-                  fill="#FF6B35"
-                  className="transition-all duration-500 hover:fill-orange-600"
-                />
-                <path 
-                  d="M20 35 L35 35 L30 45 L20 45 Z" 
-                  fill="#FF6B35"
-                  className="transition-all duration-500 hover:fill-orange-700"
-                />
-                <path 
-                  d="M45 15 L70 30 L45 45 L50 30 Z" 
-                  fill="#1E3A8A"
-                  className="transition-all duration-500 hover:fill-blue-700"
-                />
-              </svg>
+            {/* Replaced with imported SVG */}
+            <div className="w-280 h-280 mb-8 animate-float">
+              <img 
+                src={ShipperLogo} 
+                alt="Phoenix Prime Logo" 
+                className="w-full h-full drop-shadow-lg"
+              />
             </div>
           </div>
           
@@ -49,7 +33,7 @@ const WelcomeScreen = ({ onGetStarted }) => {
           </div>
         </div>
 
-        {/* Get Started Button */}
+        {/* Rest of your component remains the same */}
         <div className="w-full mb-16">
           <button
             onClick={onGetStarted}
@@ -67,7 +51,6 @@ const WelcomeScreen = ({ onGetStarted }) => {
           </button>
         </div>
 
-        {/* Bottom Text */}
         <div className="mt-auto text-center">
           <div className="flex justify-center space-x-6 mb-4">
             {['Reliable', 'Fast', 'Secure'].map((item) => (
@@ -83,7 +66,6 @@ const WelcomeScreen = ({ onGetStarted }) => {
         </div>
       </div>
 
-      {/* Add global styles for animations */}
       <style jsx global>{`
         @keyframes float {
           0%, 100% { transform: translateY(0); }

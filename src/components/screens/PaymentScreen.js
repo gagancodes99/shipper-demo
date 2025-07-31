@@ -205,7 +205,7 @@ const PaymentScreen = ({ jobData, onNext, onBack }) => {
         )}
 
         <button
-          onClick={handlePayment}
+         onClick={onNext}
           disabled={isProcessing || !cardDetails.number || !cardDetails.expiry || !cardDetails.cvv || !cardDetails.name}
           className="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 text-white p-4 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:from-emerald-700 hover:to-emerald-800 transition-all flex items-center justify-center transform hover:scale-105 disabled:transform-none"
         >

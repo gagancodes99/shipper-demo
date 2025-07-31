@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-
+import ShipperLogo from '../../assets/shipperlogo.png'
 /**
  * WelcomeScreen - App welcome and onboarding screen
  * 
@@ -36,28 +36,34 @@ const WelcomeScreen = () => {
     <div className="min-h-screen bg-white flex flex-col max-w-sm mx-auto">
       <div className="flex-1 flex flex-col justify-center items-center px-4 py-8 max-w-sm mx-auto w-full">
         {/* Logo */}
-        <div className="mb-8 flex flex-col items-center">
-          {/* Phoenix Prime Logo */}
-          <div className="mb-6">
-            <svg width="120" height="60" viewBox="0 0 200 100" className="mb-4">
-              {/* Orange arrow part */}
-              <path d="M20 30 L80 30 L100 50 L80 70 L20 70 L40 50 Z" fill="#FF6B35"/>
-              <path d="M30 40 L70 40 L80 50 L70 60 L30 60 L40 50 Z" fill="#FF6B35"/>
-              <path d="M40 45 L65 45 L70 50 L65 55 L40 55 L45 50 Z" fill="#FF6B35"/>
-              {/* Dark blue arrow part */}
-              <path d="M90 30 L150 30 L170 50 L150 70 L90 70 L110 50 Z" fill="#2C3E50"/>
-            </svg>
-          </div>
-          
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Phoenix Prime</h1>
-          <p className="text-gray-500 text-lg">Driven to Deliver</p>
-        </div>
+       <div className="mb-8 flex flex-col items-center w-full">
+  {/* Phoenix Prime Logo */}
+  <div className="mb-6">
+    <div className="w-200 h-200 mb-8 animate-float">
+      <img 
+        src={ShipperLogo} 
+        alt="Phoenix Prime Logo" 
+        className="w-full h-full drop-shadow-lg"
+      />
+    </div>
+  </div>
+
+  {/* Full-width title */}
+  <h1 
+    className="font-bold text-gray-900 mb-2 w-full text-center"
+    style={{ fontSize: 'clamp(1.75rem, 6vw, 3rem)' }} // fluid sizing if desired
+  >
+    Phoenix Prime
+  </h1>
+  <p className="text-gray-500 text-2xl font-bold ">Driven to Deliver</p>
+</div>
+
 
         {/* Get Started Button */}
         <div className="w-full mb-8">
           <button
             onClick={() => navigate('/register')}
-            className="w-full bg-black text-white py-4 px-6 rounded-lg font-semibold text-lg hover:bg-gray-800 transition-colors flex items-center justify-center"
+            className="w-full bg-black text-white py-4 text-2xl px-6 rounded-lg font-semibold  hover:bg-gray-800 transition-colors flex items-center justify-center"
           >
             Get Started
             <span className="ml-2">→</span>
@@ -66,14 +72,14 @@ const WelcomeScreen = () => {
 
         {/* Features */}
         <div className="text-center mb-8">
-          <p className="text-gray-600 text-sm">
+          <p className="text-gray-600 text-2xl">
             Reliable • Fast • Secure
           </p>
         </div>
 
         {/* Login Link */}
         <div className="text-center">
-          <p className="text-gray-600 text-sm">
+          <p className="text-gray-600 text-2xl">
             Already have an account?{' '}
             <button
               onClick={() => navigate('/login')}
@@ -86,7 +92,7 @@ const WelcomeScreen = () => {
 
         {/* Version */}
         <div className="text-center mt-8">
-          <p className="text-gray-400 text-xs">Version 1.0</p>
+          <p className="text-gray-400 text-2xl">Version 1.0</p>
         </div>
       </div>
     </div>

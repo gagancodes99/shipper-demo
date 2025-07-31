@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import {
+  Home,
+  ClipboardList,
+  CreditCard,
+  BarChart2,
+  User
+} from 'lucide-react';
 
 // Import existing booking components and hooks
 import { useJobData } from '../hooks/useJobData';
@@ -21,18 +28,48 @@ import { downloadReactPDF } from './pdf/ReactPDFGenerator';
 // Import modal components
 import AddressBookModal from './modals/AddressBookModal';
 
-/**
- * BookingFlow - Wrapper component for the 8-step booking process
- * 
- * This component maintains the existing booking functionality while integrating
- * with the new navigation system. It provides:
- * - Back navigation to main app
- * - Isolated booking state management
- * - Integration with existing booking screens and logic
- */
+const BottomNavigation = ({ currentPath, onNavigate }) => {
+  const navItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: <Home size={20} />, path: '/dashboard' },
+    { id: 'jobs', label: 'Jobs', icon: <ClipboardList size={20} />, path: '/jobs' },
+    { id: 'transactions', label: 'Transactions', icon: <CreditCard size={20} />, path: '/transactions' },
+    { id: 'profile', label: 'Profile', icon: <User size={20} />, path: '/profile' }
+  ];
 
-const BookingFlow = () => {
+  return (
+    <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-200 px-0 py-2 z-40 max-w-sm mx-auto">
+      <div className="flex justify-around items-center max-w-md mx-auto">
+        {navItems.map((item) => {
+          const isActive = currentPath === item.path;
+          
+          return (
+            <button
+              key={item.id}
+              onClick={() => onNavigate(item.path)}
+              className={`flex flex-col items-center px-3 py-2 rounded-lg transition-colors ${
+                isActive
+                  ? 'text-blue-600'
+                  : 'text-gray-500 hover:text-blue-600'
+              }`}
+            >
+              <span className={`mb-1 ${isActive ? 'text-blue-600' : 'text-gray-500'}`}>
+                {React.cloneElement(item.icon, {
+                  className: isActive ? 'text-blue-600' : 'text-gray-500',
+                  fill: isActive ? 'currentColor' : 'none'
+                })}
+              </span>
+              <span className="text-xs font-medium">{item.label}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+const BookingFlow = ({ onComplete, onCancel }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   
   // State for modal management
   const [showAddressBook, setShowAddressBook] = useState(false);
@@ -104,15 +141,24 @@ const BookingFlow = () => {
    * Handle back navigation to main app
    */
   const handleBackToApp = () => {
-    navigate('/dashboard');
+    onCancel();
   };
 
   /**
    * Handle booking completion
    */
   const handleBookingComplete = () => {
-    // Navigate to jobs screen to see the new booking
-    navigate('/jobs');
+    onComplete();
+  };
+
+  /**
+   * Handle navigation from bottom nav
+   */
+  const handleBottomNavNavigate = (path) => {
+    if (path !== location.pathname) {
+      navigate(path);
+      onCancel();
+    }
   };
 
   /**
@@ -232,8 +278,14 @@ const BookingFlow = () => {
   };
 
   return (
-    <div className="booking-flow">
+    <div className="booking-flow pb-20"> {/* Added pb-20 for bottom nav spacing */}
       {renderCurrentScreen()}
+      
+      {/* Bottom Navigation */}
+      <BottomNavigation 
+        currentPath={location.pathname}
+        onNavigate={handleBottomNavNavigate}
+      />
       
       {/* Address Book Modal */}
       {showAddressBook && (

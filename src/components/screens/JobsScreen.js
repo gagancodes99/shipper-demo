@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -20,6 +20,7 @@ import {
 export default function JobsScreen() {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('active');
+    const [searchQuery, setSearchQuery] = useState('');
     
     const handleJobPress = (jobId) => {
         navigate(`/job/${jobId}/tracking`);
@@ -182,6 +183,22 @@ export default function JobsScreen() {
         }
     };
 
+    // Filter jobs based on search query
+    const filteredJobs = useMemo(() => {
+        const jobs = getJobsForTab();
+        if (!searchQuery.trim()) return jobs;
+
+        const query = searchQuery.toLowerCase();
+        return jobs.filter(job => 
+            job.id.toLowerCase().includes(query) ||
+            job.status.toLowerCase().includes(query) ||
+            job.driver.name.toLowerCase().includes(query) ||
+            job.pickup.location.toLowerCase().includes(query) ||
+            job.destination.location.toLowerCase().includes(query) ||
+            job.parcel.type.toLowerCase().includes(query)
+        );
+    }, [activeTab, searchQuery]);
+
     const getTabCount = (tab) => {
         switch (tab) {
             case 'active':
@@ -214,6 +231,8 @@ export default function JobsScreen() {
                         type="text"
                         placeholder="Search jobs..."
                         className="flex-1 bg-transparent outline-none text-sm text-gray-700 placeholder-gray-400"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
                 <button className="p-2 border rounded-xl hover:bg-gray-50">
@@ -247,206 +266,211 @@ export default function JobsScreen() {
 
             {/* Job Cards */}
             <main className="px-4 mt-3 pb-8 space-y-4">
-                {getJobsForTab().map((job) => (
-                    <article 
-                        key={job.id}
-                        className="rounded-2xl border p-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                        onClick={() => handleJobPress(job.id)}
-                    >
-                        {/* Header */}
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm font-semibold">#{job.id}</span>
-                                <span className={`text-xs px-2 py-0.5 rounded-full ${
-                                    job.status === 'In Transit' ? 'bg-blue-100 text-blue-600' :
-                                    job.status === 'Scheduled' ? 'bg-purple-100 text-purple-600' :
-                                    'bg-green-100 text-green-600'
-                                }`}>
-                                    {job.status}
-                                </span>
-                            </div>
-                            <button 
-                                className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    // Handle menu click
-                                }}
-                            >
-                                <MoreHorizontal className="w-5 h-5" />
-                            </button>
-                        </div>
-
-                        {/* Progress */}
-                        <div className="mt-2">
-                            <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-                                <span>Progress</span>
-                                <span className="text-gray-800 font-medium">{job.progress}%</span>
-                            </div>
-                            <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                                <div
-                                    className={`h-2 ${
-                                        job.status === 'In Transit' ? 'bg-blue-500' :
-                                        job.status === 'Scheduled' ? 'bg-purple-500' :
-                                        'bg-green-500'
-                                    } rounded-full`}
-                                    style={{ width: `${job.progress}%` }}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
-                            <div className="flex items-start gap-3">
-                                {/* Avatar */}
-                                <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full text-blue-700 font-bold text-sm">
-                                    {job.driver.initials}
-                                </div>
-
-                                {/* Partner Info */}
-                                <div className="flex-1">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm font-medium text-gray-900">{job.driver.name}</span>
-                                        <span className="text-xs text-gray-500">Driver</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 mt-1">
-                                        <div className="flex items-center text-xs text-yellow-600">
-                                            <Star className="w-3 h-3 fill-yellow-400" />
-                                            <span className="ml-1">{job.driver.rating}</span>
-                                        </div>
-                                        <span className="text-xs text-gray-400">•</span>
-                                        <span className="text-xs text-gray-600">{job.driver.vehicle}</span>
-                                    </div>
-                                </div>
-
-                                {/* Action Buttons */}
-                                <div className="flex gap-1">
-                                    <button 
-                                        className="p-1.5 rounded-full bg-white border border-gray-200 text-blue-600 hover:bg-blue-50 transition-colors"
-                                        onClick={(e) => e.stopPropagation()}
-                                    >
-                                        <Phone className="w-4 h-4" />
-                                    </button>
-                                    <button 
-                                        className="p-1.5 rounded-full bg-white border border-gray-200 text-blue-600 hover:bg-blue-50 transition-colors"
-                                        onClick={(e) => e.stopPropagation()}
-                                    >
-                                        <MessageSquare className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Session Info */}
-                        <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
-                            <Calendar className="w-4 h-4" />
-                            <span>{job.date}</span>
-                        </div>
-
-                        {/* Pickup */}
-                        <div className="mt-3 grid grid-cols-[18px_1fr] gap-x-2 gap-y-0.5 text-xs">
-                            <span className="text-green-500 mt-1">
-                                <MapPin className="w-4 h-4" />
-                            </span>
-                            <div className="text-gray-500">Pickup</div>
-                            <span />
-                            <div className="text-gray-900">{job.pickup.location}</div>
-                            <span />
-                            <div className="text-gray-500 flex items-center gap-1">
-                                <Phone className="w-3 h-3" />
-                                {job.pickup.contact}
-                            </div>
-                        </div>
-
-                        {/* Destination */}
-                        <div className="mt-3 grid grid-cols-[18px_1fr] gap-x-2 gap-y-0.5 text-xs">
-                            <span className="text-red-500 mt-1">
-                                <MapPin className="w-4 h-4" />
-                            </span>
-                            <div className="text-gray-500">Destination</div>
-                            <span />
-                            <div className="text-gray-900">{job.destination.location}</div>
-                            <span />
-                            <div className="text-gray-500 flex items-center gap-1">
-                                <Phone className="w-3 h-3" />
-                                {job.destination.contact}
-                            </div>
-                        </div>
-
-                        {/* Parcel Card */}
-                        <div className="mt-3 bg-blue-50 rounded-xl p-3 text-xs">
-                            <div className="flex items-center gap-2 text-blue-700 font-medium mb-2">
-                                <Package className="w-4 h-4" />
-                                <span>{job.parcel.type}</span>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4 text-gray-700">
-                                <div>
-                                    <p className="text-[11px] text-gray-500">Apply</p>
-                                    <p className="font-semibold">{job.parcel.price}</p>
-                                </div>
-                                <div>
-                                    <p className="text-[11px] text-gray-500">Repeat</p>
-                                    <p className="font-semibold">{job.parcel.repeatPrice}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* ETA + Actions */}
-                        <div className="mt-3">
-                            <div className={`flex justify-between items-center ${
-                                job.status === 'Completed' ? 'text-green-600 bg-green-50 border border-green-100' : 
-                                'text-amber-600 bg-amber-50 border border-amber-100'
-                            } px-3 py-2 rounded-lg text-xs`}>
+                {filteredJobs.length > 0 ? (
+                    filteredJobs.map((job) => (
+                        <article 
+                            key={job.id}
+                            className="rounded-2xl border p-3 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                            onClick={() => handleJobPress(job.id)}
+                        >
+                            {/* Header */}
+                            <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <Clock className="w-4 h-4" />
-                                    <span className="font-medium">
-                                        {job.status === 'Completed' ? 'Completed' : `ETA: ${job.eta}`}
+                                    <span className="text-sm font-semibold">#{job.id}</span>
+                                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                        job.status === 'In Transit' ? 'bg-blue-100 text-blue-600' :
+                                        job.status === 'Scheduled' ? 'bg-purple-100 text-purple-600' :
+                                        'bg-green-100 text-green-600'
+                                    }`}>
+                                        {job.status}
                                     </span>
                                 </div>
                                 <button 
-                                    className="text-xs text-gray-500 hover:text-gray-700 flex items-center"
+                                    className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        // Handle track live click
+                                        // Handle menu click
                                     }}
                                 >
-                                    <FileText className="w-4 h-4 mr-1" />
-                                    {job.status === 'Completed' ? 'View details' : 'Track live'}
+                                    <MoreHorizontal className="w-5 h-5" />
                                 </button>
                             </div>
-                        </div>
 
-                        {/* CTA Buttons */}
-                        <div className="mt-3 grid grid-cols-2 gap-2">
-                            <button 
-                                className="bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleJobPress(job.id);
-                                }}
-                            >
-                                <FileText className="w-4 h-4" />
-                                View Details
-                            </button>
-                            <button 
-                                className="border border-gray-300 text-gray-700 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    // Handle contact click
-                                }}
-                            >
-                                <Repeat className="w-4 h-4" />
-                                Contact
-                            </button>
-                        </div>
-                    </article>
-                ))}
+                            {/* Progress */}
+                            <div className="mt-2">
+                                <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+                                    <span>Progress</span>
+                                    <span className="text-gray-800 font-medium">{job.progress}%</span>
+                                </div>
+                                <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                                    <div
+                                        className={`h-2 ${
+                                            job.status === 'In Transit' ? 'bg-blue-500' :
+                                            job.status === 'Scheduled' ? 'bg-purple-500' :
+                                            'bg-green-500'
+                                        } rounded-full`}
+                                        style={{ width: `${job.progress}%` }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                <div className="flex items-start gap-3">
+                                    {/* Avatar */}
+                                    <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full text-blue-700 font-bold text-sm">
+                                        {job.driver.initials}
+                                    </div>
+
+                                    {/* Partner Info */}
+                                    <div className="flex-1">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm font-medium text-gray-900">{job.driver.name}</span>
+                                            <span className="text-xs text-gray-500">Driver</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            {/* <div className="flex items-center text-xs text-yellow-600">
+                                                <Star className="w-3 h-3 fill-yellow-400" />
+                                                <span className="ml-1">{job.driver.rating}</span>
+                                            </div> */}
+                                            <span className="text-xs text-gray-400">•</span>
+                                            <span className="text-xs text-gray-600">{job.driver.vehicle}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Action Buttons */}
+                                    {/* <div className="flex gap-1">
+                                        <button 
+                                            className="p-1.5 rounded-full bg-white border border-gray-200 text-blue-600 hover:bg-blue-50 transition-colors"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            <Phone className="w-4 h-4" />
+                                        </button>
+                                        <button 
+                                            className="p-1.5 rounded-full bg-white border border-gray-200 text-blue-600 hover:bg-blue-50 transition-colors"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            <MessageSquare className="w-4 h-4" />
+                                        </button>
+                                    </div> */}
+                                </div>
+                            </div>
+
+                            {/* Session Info */}
+                            <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
+                                <Calendar className="w-4 h-4" />
+                                <span>{job.date}</span>
+                            </div>
+
+                            {/* Pickup */}
+                            <div className="mt-3 grid grid-cols-[18px_1fr] gap-x-2 gap-y-0.5 text-xs">
+                                <span className="text-green-500 mt-1">
+                                    <MapPin className="w-4 h-4" />
+                                </span>
+                                <div className="text-gray-500">Pickup</div>
+                                <span />
+                                <div className="text-gray-900">{job.pickup.location}</div>
+                                <span />
+                                <div className="text-gray-500 flex items-center gap-1">
+                                    <Phone className="w-3 h-3" />
+                                    {job.pickup.contact}
+                                </div>
+                            </div>
+
+                            {/* Destination */}
+                            <div className="mt-3 grid grid-cols-[18px_1fr] gap-x-2 gap-y-0.5 text-xs">
+                                <span className="text-red-500 mt-1">
+                                    <MapPin className="w-4 h-4" />
+                                </span>
+                                <div className="text-gray-500">Destination</div>
+                                <span />
+                                <div className="text-gray-900">{job.destination.location}</div>
+                                <span />
+                                <div className="text-gray-500 flex items-center gap-1">
+                                    <Phone className="w-3 h-3" />
+                                    {job.destination.contact}
+                                </div>
+                            </div>
+
+                            {/* Parcel Card */}
+                            <div className="mt-3 bg-blue-50 rounded-xl p-3 text-xs">
+                                <div className="flex items-center gap-2 text-blue-700 font-medium mb-2">
+                                    <Package className="w-4 h-4" />
+                                    <span>{job.parcel.type}</span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4 text-gray-700">
+                                    <div>
+                                        <p className="text-[11px] text-gray-500">Apply</p>
+                                        <p className="font-semibold">{job.parcel.price}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[11px] text-gray-500">Repeat</p>
+                                        <p className="font-semibold">{job.parcel.repeatPrice}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* ETA + Actions */}
+                            <div className="mt-3">
+                                <div className={`flex justify-between items-center ${
+                                    job.status === 'Completed' ? 'text-green-600 bg-green-50 border border-green-100' : 
+                                    'text-amber-600 bg-amber-50 border border-amber-100'
+                                } px-3 py-2 rounded-lg text-xs`}>
+                                    <div className="flex items-center gap-2">
+                                        <Clock className="w-4 h-4" />
+                                        <span className="font-medium">
+                                            {job.status === 'Completed' ? 'Completed' : `ETA: ${job.eta}`}
+                                        </span>
+                                    </div>
+                                    <button 
+                                        className="text-xs text-gray-500 hover:text-gray-700 flex items-center"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            // Handle track live click
+                                        }}
+                                    >
+                                        <FileText className="w-4 h-4 mr-1" />
+                                        {job.status === 'Completed' ? 'View details' : 'Track live'}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* CTA Buttons */}
+                            <div className="mt-3 grid grid-cols-2 gap-2">
+                                <button 
+                                    className="bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleJobPress(job.id);
+                                    }}
+                                >
+                                    <FileText className="w-4 h-4" />
+                                    View Details
+                                </button>
+                                {/* <button 
+                                    className="border border-gray-300 text-gray-700 py-2 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center gap-1"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                    }}
+                                >
+                                    <Repeat className="w-4 h-4" />
+                                    Contact
+                                </button> */}
+                            </div>
+                        </article>
+                    ))
+                ) : (
+                    <div className="text-center py-8 text-gray-500">
+                        No jobs found matching your search
+                    </div>
+                )}
 
                 {/* Load more button */}
-                {activeTab === 'active' && (
-                      <button 
-        className="w-full py-3 text-blue-600 text-sm font-mediummt-4"
-      >
-       Load more job
-      </button>
+                {activeTab === 'active' && filteredJobs.length > 0 && (
+                    <button 
+                        className="w-full py-3 text-blue-600 text-sm font-medium mt-4"
+                    >
+                        Load more jobs
+                    </button>
                 )}
             </main>
         </div>
