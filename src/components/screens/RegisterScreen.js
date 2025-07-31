@@ -119,7 +119,7 @@ const RegisterScreen = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col max-w-md mx-auto">
+    <div className="min-h-screen bg-gray-50 flex flex-col max-w-md mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between p-6 bg-white border-b border-gray-100">
         <button
