@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import ShipperLogo from '../../assets/shipperlogo.png'; // Adjust the path if needed
 
 /**
  * LoginScreen - User authentication screen
@@ -86,16 +87,16 @@ const LoginScreen = () => {
         {/* Header */}
         <div className="text-center mb-8">
           {/* Phoenix Prime Logo */}
-          <div className="mb-6">
-            <svg width="80" height="40" viewBox="0 0 200 100" className="mx-auto mb-4">
-              {/* Orange arrow part */}
-              <path d="M20 30 L80 30 L100 50 L80 70 L20 70 L40 50 Z" fill="#FF6B35"/>
-              <path d="M30 40 L70 40 L80 50 L70 60 L30 60 L40 50 Z" fill="#FF6B35"/>
-              <path d="M40 45 L65 45 L70 50 L65 55 L40 55 L45 50 Z" fill="#FF6B35"/>
-              {/* Dark blue arrow part */}
-              <path d="M90 30 L150 30 L170 50 L150 70 L90 70 L110 50 Z" fill="#2C3E50"/>
-            </svg>
-          </div>
+          <div className="flex justify-center mb-6">
+  <div className="w-20 h-15 animate-float">
+    <img 
+      src={ShipperLogo} 
+      alt="Phoenix Prime Logo" 
+      className="w-full h-full drop-shadow-lg"
+    />
+  </div>
+</div>
+
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back</h1>
           <p className="text-gray-600 text-sm">Sign in to your Phoenix Prime account</p>
         </div>

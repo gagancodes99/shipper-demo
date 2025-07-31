@@ -63,10 +63,8 @@ const DashboardScreen = ({ onNewJob }) => {
       {/* Header */}
      <div className="flex items-center justify-between px-4 py-4">
   <button 
-    onClick={onBack} 
     className="flex items-center gap-2"
   >
-    <ArrowLeft className="w-5 h-5 text-gray-700" />
     <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
   </button>
   <div className="relative">
@@ -124,7 +122,7 @@ const DashboardScreen = ({ onNewJob }) => {
         </button>
 
         {/* Recent Jobs */}
-      <div className="bg-white p-3">
+      <div className="bg-white p-3 ">
   <div className="flex items-center justify-between mb-4">
     <h2 className="text-2xl font-semibold text-gray-900">Recent Jobs</h2>
     <button
@@ -135,150 +133,205 @@ const DashboardScreen = ({ onNewJob }) => {
     </button>
   </div>
   
-  <div className="space-y-4">
+  <div className="space-y-4  p-3 rounded">
     {/* Job #1001 - Active */}
-    <div className="bg-white border-b border-gray-100 pb-4">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center space-x-2">
-          <span className="font-bold text-gray-900">#1001</span>
-          <span className="text-blue-600 font-medium text-sm">Active</span>
-        </div>
-        {/* Track moved to the time row below */}
-      </div>
-      
-      <div className="space-y-2 text-sm">
-        <div className="flex items-start">
-          <div className="w-2 h-2 bg-green-500 rounded-full mt-2 mr-3"></div>
-          <div>
-            <div className="text-gray-500 text-xs">From</div>
-            <div className="text-gray-900 font-medium">Unit 8 S, Downtown</div>
-          </div>
-        </div>
-        <div className="flex items-start">
-          <div className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-3"></div>
-          <div>
-            <div className="text-gray-500 text-xs">To</div>
-            <div className="text-gray-900 font-medium">84 Customer Ave, Uptown</div>
-          </div>
-        </div>
+    
+    <div className="bg-white border border-gray-100 rounded p-3 pb-4 relative">
+  {/* Arrow icon aligned to the right */}
+  <div className="absolute top-3 right-3 text-gray-400">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      className="h-5 w-5"
+      viewBox="0 0 20 20"
+      fill="currentColor"
+    >
+      <path
+        fillRule="evenodd"
+        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 111.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+        clipRule="evenodd"
+      />
+    </svg>
+  </div>
 
-        {/* Times + Track aligned on same row */}
-        <div className="mt-2 ml-5 flex items-center justify-between">
-          <div className="text-gray-500 text-xs flex gap-6">
-            <div className="flex flex-col items-center">
-              <span className="font-medium text-gray-700">Start time</span>
-              <span>9:30 AM</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <span className="font-medium text-gray-700">End time</span>
-              <span>2:30 PM</span>
-            </div>
-          </div>
-          <button
-            onClick={() => handleTrackJob('#1001')}
-            className="text-blue-600 font-medium text-sm"
-          >
-            Track
-          </button>
-        </div>
+  {/* Card Content */}
+  <div className="flex items-center justify-between mb-3">
+    <div className="flex items-center space-x-2">
+      <span className="font-bold text-gray-900">#1001</span>
+      <span className="text-blue-600 font-medium text-sm">Active</span>
+    </div>
+  </div>
+  
+  <div className="space-y-2 text-sm">
+    <div className="flex items-start">
+      <div className="w-2 h-2 bg-green-500 rounded-full mt-2 mr-3"></div>
+      <div>
+        <div className="text-gray-500 font-medium text-md">From</div>
+        <div className="text-gray-900">Unit 8 S, Downtown</div>
       </div>
     </div>
+    <div className="flex items-start">
+      <div className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-3"></div>
+      <div>
+        <div className="text-gray-500 font-medium text-md">To</div>
+        <div className="text-gray-900">84 Customer Ave, Uptown</div>
+      </div>
+    </div>
+
+    <div className="mt-2 ml-5 flex items-center justify-between">
+      <div className="text-gray-500 text-xs flex gap-6">
+        <div className="flex flex-col items-center">
+          <span className="font-medium text-gray-700">Start time</span>
+          <span>9:30 AM</span>
+        </div>
+        <div className="flex flex-col items-center">
+          <span className="font-medium text-gray-700">End time</span>
+          <span>2:30 PM</span>
+        </div>
+      </div>
+      <button
+        onClick={() => handleTrackJob('1001')}
+        className="text-blue-600 font-medium text-sm"
+      >
+        Track
+      </button>
+    </div>
+  </div>
+</div>
+
 
     {/* Job #1003 - Itemized */}
-    <div className="bg-white border-b border-gray-100 pb-4">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center space-x-2">
-          <span className="font-bold text-gray-900">#1003</span>
-          <span className="text-orange-600 font-medium text-sm">Itemized</span>
-        </div>
-        {/* Track moved to the time row below */}
-      </div>
-      
-      <div className="space-y-2 text-sm">
-        <div className="flex items-start">
-          <div className="w-2 h-2 bg-green-500 rounded-full mt-2 mr-3"></div>
-          <div>
-            <div className="text-gray-500 text-xs">From</div>
-            <div className="text-gray-900 font-medium">84 Laurel Ave, Industrial</div>
-          </div>
-        </div>
-        <div className="flex items-start">
-          <div className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-3"></div>
-          <div>
-            <div className="text-gray-500 text-xs">To</div>
-            <div className="text-gray-900 font-medium">84 Robert Plaza, Central</div>
-          </div>
-        </div>
+    <div className="bg-white border border-gray-100 rounded p-3 pb-4">
+  {/* Top Row: Job ID, Status, and Arrow Icon */}
+  <div className="flex items-center justify-between mb-3">
+    {/* Left: Job Info */}
+    <div className="flex items-center space-x-2">
+      <span className="font-bold text-gray-900">#1003</span>
+      <span className="text-orange-600 font-medium text-sm">Itemized</span>
+    </div>
 
-        {/* Times + Track aligned on same row */}
-        <div className="mt-2 ml-5 flex items-center justify-between">
-          <div className="text-gray-500 text-xs flex gap-6">
-            <div className="flex flex-col items-center">
-              <span className="font-medium text-gray-700">Start time</span>
-              <span>2:30 PM</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <span className="font-medium text-gray-700">End time</span>
-              <span>5:00 PM</span>
-            </div>
-          </div>
-          <button
-            onClick={() => handleTrackJob('#1003')}
-            className="text-blue-600 font-medium text-sm"
-          >
-            Track
-          </button>
-        </div>
+    {/* Right: Arrow Icon */}
+    <div className="text-gray-400">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-5 w-5"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+      >
+        <path
+          fillRule="evenodd"
+          d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 111.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+          clipRule="evenodd"
+        />
+      </svg>
+    </div>
+  </div>
+
+  {/* Route Details */}
+  <div className="space-y-2 text-sm">
+    <div className="flex items-start">
+      <div className="w-2 h-2 bg-green-500 rounded-full mt-2 mr-3"></div>
+      <div>
+        <div className="text-gray-500 font-medium text-md">From</div>
+        <div className="text-gray-900">84 Laurel Ave, Industrial</div>
       </div>
     </div>
+    <div className="flex items-start">
+      <div className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-3"></div>
+      <div>
+        <div className="text-gray-500 font-medium text-md">To</div>
+        <div className="text-gray-900">84 Robert Plaza, Central</div>
+      </div>
+    </div>
+
+    {/* Times and Track Button */}
+    <div className="mt-2 ml-5 flex items-center justify-between">
+      <div className="text-gray-500 text-xs flex gap-6">
+        <div className="flex flex-col items-center">
+          <span className="font-medium text-gray-700">Start time</span>
+          <span>2:30 PM</span>
+        </div>
+        <div className="flex flex-col items-center">
+          <span className="font-medium text-gray-700">End time</span>
+          <span>5:00 PM</span>
+        </div>
+      </div>
+      <button
+        onClick={() => handleTrackJob('1003')}
+        className="text-blue-600 font-medium text-sm"
+      >
+        Track
+      </button>
+    </div>
+  </div>
+</div>
+
 
     {/* Job #1056 - Completed */}
-    <div className="bg-white pb-4">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center space-x-2">
-          <span className="font-bold text-gray-900">#1056</span>
-          <span className="text-green-600 font-medium text-sm">Completed</span>
-        </div>
-        {/* Track moved to the time row below */}
-      </div>
-      
-      <div className="space-y-2 text-sm">
-        <div className="flex items-start">
-          <div className="w-2 h-2 bg-green-500 rounded-full mt-2 mr-3"></div>
-          <div>
-            <div className="text-gray-500 text-xs">From</div>
-            <div className="text-gray-900 font-medium">84 Maple Ave, Riverside</div>
-          </div>
-        </div>
-        <div className="flex items-start">
-          <div className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-3"></div>
-          <div>
-            <div className="text-gray-500 text-xs">To</div>
-            <div className="text-gray-900 font-medium">5 Main Street, Eastside</div>
-          </div>
-        </div>
+    <div className="bg-white border border-gray-100 rounded p-3 pb-4">
+  {/* Header Row: Job ID + Status + Arrow */}
+  <div className="flex items-center justify-between mb-3">
+    {/* Left side: ID and status */}
+    <div className="flex items-center space-x-2">
+      <span className="font-bold text-gray-900">#1056</span>
+      <span className="text-green-600 font-medium text-sm">Completed</span>
+    </div>
 
-        {/* Times + Track aligned on same row */}
-        <div className="mt-2 ml-5 flex items-center justify-between">
-          <div className="text-gray-500 text-xs flex gap-6">
-            <div className="flex flex-col items-center">
-              <span className="font-medium text-gray-700">Start time</span>
-              <span>8:00 AM</span>
-            </div>
-            <div className="flex flex-col items-center">
-              <span className="font-medium text-gray-700">End time</span>
-              <span>11:45 AM</span>
-            </div>
-          </div>
-          <button
-            onClick={() => handleTrackJob('#1056')}
-            className="text-blue-600 font-medium text-sm"
-          >
-            Track
-          </button>
-        </div>
+    {/* Right side: Arrow icon */}
+    <div className="text-gray-400">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-5 w-5"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+      >
+        <path
+          fillRule="evenodd"
+          d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 111.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+          clipRule="evenodd"
+        />
+      </svg>
+    </div>
+  </div>
+
+  {/* From / To Details */}
+  <div className="space-y-2 text-sm">
+    <div className="flex items-start">
+      <div className="w-2 h-2 bg-green-500 rounded-full mt-2 mr-3"></div>
+      <div>
+        <div className="text-gray-500 font-medium text-md">From</div>
+        <div className="text-gray-900">84 Maple Ave, Riverside</div>
       </div>
     </div>
+    <div className="flex items-start">
+      <div className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-3"></div>
+      <div>
+        <div className="text-gray-500 font-medium text-md">To</div>
+        <div className="text-gray-900">5 Main Street, Eastside</div>
+      </div>
+    </div>
+
+    {/* Times + Track Button */}
+    <div className="mt-2 ml-5 flex items-center justify-between">
+      <div className="text-gray-500 text-xs flex gap-6">
+        <div className="flex flex-col items-center">
+          <span className="font-medium text-gray-700">Start time</span>
+          <span>8:00 AM</span>
+        </div>
+        <div className="flex flex-col items-center">
+          <span className="font-medium text-gray-700">End time</span>
+          <span>11:45 AM</span>
+        </div>
+      </div>
+      <button
+        onClick={() => handleTrackJob('1056')}
+        className="text-blue-600 font-medium text-sm"
+      >
+        Track
+      </button>
+    </div>
+  </div>
+</div>
+
   </div>
 </div>
 

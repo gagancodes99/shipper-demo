@@ -109,8 +109,8 @@ export default function DeliveryTrackingScreen() {
                   <p className="text-xs text-gray-500">ABC 123 • Ford Transit</p>
                 </div>
                 <div className="flex gap-3 text-blue-600">
-                  <Phone className="w-4 h-4" />
-                  <Mail className="w-4 h-4" />
+                  {/* <Phone className="w-4 h-4" />
+                  <Mail className="w-4 h-4" /> */}
                 </div>
               </div>
             </div>
