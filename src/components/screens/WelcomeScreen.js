@@ -79,7 +79,7 @@ const WelcomeScreen = () => {
 
         {/* Login Link */}
         <div className="text-center">
-          <p className="text-gray-600 text-2xl">
+          <p className="text-gray-600 text-2xl"> 
             Already have an account?{' '}
             <button
               onClick={() => navigate('/login')}
