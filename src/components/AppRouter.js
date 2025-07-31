@@ -3,9 +3,10 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavig
 import { useAuth } from '../context/AuthContext';
 import {
   Home,
-  ClipboardList,
+  List,
   CreditCard,
   BarChart2,
+  ChartColumn,
   User
 } from 'lucide-react';
 
@@ -25,12 +26,12 @@ import BookingFlow from './BookingFlow';
 // Bottom Navigation Component
 const BottomNavigation = ({ currentPath, onNavigate }) => {
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: <Home size={20} />, path: '/dashboard' },
-    { id: 'jobs', label: 'Jobs', icon: <ClipboardList size={20} />, path: '/jobs' },
+    { id: 'dashboard', label: 'Dashboard', icon: <ChartColumn size={20} />, path: '/dashboard' },
+    { id: 'jobs', label: 'Jobs', icon: <List size={20} />, path: '/jobs' },
     { id: 'transactions', label: 'Transactions', icon: <CreditCard size={20} />, path: '/transactions' },
-    // { id: 'reporting', label: 'Reporting', icon: <BarChart2 size={20} />, path: '/dashboard' },
     { id: 'profile', label: 'Profile', icon: <User size={20} />, path: '/profile' }
   ];
+
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-200 px-0 py-2 z-40 max-w-sm mx-auto ">

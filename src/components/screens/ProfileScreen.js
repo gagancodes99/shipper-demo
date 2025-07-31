@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-
+import { MapPin, ArrowLeft, Phone, Mail, FileText, Truck, Package, DollarSign, File, Upload } from "lucide-react";
 /**
  * ProfileScreen - User profile management and settings
  * 
@@ -11,7 +11,7 @@ import { useAuth } from '../../context/AuthContext';
  * - App settings and logout
  * - Mobile-optimized profile interface
  */
-
+import { useNavigate } from 'react-router-dom';
 const ProfileScreen = () => {
   const { user, logout, updateProfile, isLoading } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
@@ -20,7 +20,7 @@ const ProfileScreen = () => {
     email: user?.email || '',
     phone: user?.phone || ''
   });
-
+ const navigate = useNavigate();
   const handleEdit = () => {
     setIsEditing(true);
     setEditData({
@@ -53,6 +53,9 @@ const ProfileScreen = () => {
     logout();
   };
 
+  const onBack = () => {
+    navigate(-1);
+  };
   const menuItems = [
     {
       icon: '🔔',
@@ -101,24 +104,30 @@ const ProfileScreen = () => {
   return (
     <div className="min-h-screen bg-gray-50 pb-20 max-w-sm mx-auto">
       {/* Header */}
-      <div className=" px-4 py-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Profile</h1>
-            <p className=" mt-1">
-              Manage your account and settings
-            </p>
-          </div>
-          {!isEditing && (
-            <button
-              onClick={handleEdit}
-              className="bg-white/20  px-4 py-2 rounded-lg font-medium hover:bg-white/30 transition-colors"
-            >
-              Edit
-            </button>
-          )}
-        </div>
+<div className="px-4 py-6">
+  <div className="flex items-center justify-between">
+    <div className="flex items-center gap-3">
+      <button 
+        onClick={onBack}
+        className="text-gray-500 hover:text-gray-700 transition-colors"
+      >
+        <ArrowLeft className="w-5 h-5" />
+      </button>
+      <div>
+        <h1 className="text-2xl font-bold">Profile</h1>
+        <p className="mt-1 text-gray-500">Manage your account and settings</p>
       </div>
+    </div>
+    {!isEditing && (
+      <button
+        onClick={handleEdit}
+        className="bg-white/20 px-4 py-2 rounded-lg font-medium hover:bg-white/30 transition-colors"
+      >
+        Edit
+      </button>
+    )}
+  </div>
+</div>
 
       <div className="px-4 py-6 space-y-6">
         {/* Profile Card */}

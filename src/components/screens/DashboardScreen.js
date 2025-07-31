@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Bell, Clock, CheckCircle, Truck } from 'lucide-react';
+import { Bell, Clock, CheckCircle, Truck ,ArrowLeft } from 'lucide-react';
 
 /**
  * DashboardScreen - Main dashboard matching exact design specifications
@@ -27,7 +27,9 @@ const DashboardScreen = ({ onNewJob }) => {
       navigate('/booking');
     }
   };
-
+  const onBack = () => {
+    navigate(-1); // -1 goes back one page in history
+  };
   const handleViewAllJobs = () => {
     navigate('/jobs');
   };
@@ -59,17 +61,20 @@ const DashboardScreen = ({ onNewJob }) => {
       </div> */}
 
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-4">
-        <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
-        <div className="relative">
-          <button className="p-1">
-            <Bell className="w-6 h-6 text-gray-700" />
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-xs font-bold">1</span>
-            </div>
-          </button>
-        </div>
-      </div>
+     <div className="flex items-center justify-between px-4 py-4">
+  <button 
+    onClick={onBack} 
+    className="flex items-center gap-2"
+  >
+    <ArrowLeft className="w-5 h-5 text-gray-700" />
+    <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+  </button>
+  <div className="relative">
+    <button className="p-1">
+      <Bell className="w-6 h-6 text-gray-700" />
+    </button>
+  </div>
+</div>
 
       <div className="px-4 space-y-6">
         {/* Statistics Cards */}
@@ -121,7 +126,7 @@ const DashboardScreen = ({ onNewJob }) => {
         {/* Recent Jobs */}
       <div className="bg-white p-3">
   <div className="flex items-center justify-between mb-4">
-    <h2 className="text-lg font-semibold text-gray-900">Recent Jobs</h2>
+    <h2 className="text-2xl font-semibold text-gray-900">Recent Jobs</h2>
     <button
       onClick={handleViewAllJobs}
       className="text-blue-600 font-medium text-sm"
@@ -136,7 +141,7 @@ const DashboardScreen = ({ onNewJob }) => {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center space-x-2">
           <span className="font-bold text-gray-900">#1001</span>
-          <span className="text-green-600 font-medium text-sm">Active</span>
+          <span className="text-blue-600 font-medium text-sm">Active</span>
         </div>
         {/* Track moved to the time row below */}
       </div>
@@ -281,7 +286,7 @@ const DashboardScreen = ({ onNewJob }) => {
         {/* Featured Services */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Featured Services</h2>
+            <h2 className="text-2xl font-semibold text-gray-900">Featured Services</h2>
             <div className="flex space-x-1">
               <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
               <div className="w-2 h-2 bg-gray-300 rounded-full"></div>

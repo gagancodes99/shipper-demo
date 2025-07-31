@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  Home,
-  ClipboardList,
+  ChartColumn,
   CreditCard,
-  BarChart2,
+  List,
   User
 } from 'lucide-react';
 
@@ -29,9 +28,9 @@ import { downloadReactPDF } from './pdf/ReactPDFGenerator';
 import AddressBookModal from './modals/AddressBookModal';
 
 const BottomNavigation = ({ currentPath, onNavigate }) => {
-  const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: <Home size={20} />, path: '/dashboard' },
-    { id: 'jobs', label: 'Jobs', icon: <ClipboardList size={20} />, path: '/jobs' },
+ const navItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: <ChartColumn size={20} />, path: '/dashboard' },
+    { id: 'jobs', label: 'Jobs', icon: <List size={20} />, path: '/jobs' },
     { id: 'transactions', label: 'Transactions', icon: <CreditCard size={20} />, path: '/transactions' },
     { id: 'profile', label: 'Profile', icon: <User size={20} />, path: '/profile' }
   ];

@@ -1,5 +1,5 @@
 import React from 'react';
-
+import { MapPin, ArrowLeft, Phone, Mail, FileText, Truck, Package, DollarSign, File, Upload } from "lucide-react";
 /**
  * Header component displays the application header with optional back navigation
  * 
@@ -15,7 +15,7 @@ const Header = ({ title, onBack, showBack = true }) => {
       <div className="flex items-center">
         {showBack && (
           <button onClick={onBack} className="mr-3 p-1 rounded-full hover:bg-white/20 text-xl">
-            ←
+             <ArrowLeft  />
           </button>
         )}
         <h1 className="text-lg font-semibold">{title}</h1>

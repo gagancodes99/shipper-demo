@@ -11,8 +11,11 @@ import {
   AlertTriangle,
   RotateCcw,
   DollarSign,
+  ArrowLeft,
   TrendingUp,
+  
 } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
 
 const transactions = [
   {
@@ -83,7 +86,7 @@ export default function TransactionsScreen() {
     paymentMethod: "",
     amountRange: "",
   });
-
+ const navigate = useNavigate();
   // Calculate counts for each tab
   const getTransactionCounts = () => {
     return {
@@ -152,14 +155,20 @@ export default function TransactionsScreen() {
       amountRange: "",
     });
   };
-
+  const onBack = () => {
+    navigate(-1); // -1 goes back one page in history
+  };
   return (
     <main className="max-w-md mx-auto px-4 py-6 space-y-4 font-sans bg-white min-h-screen">
       {/* Header */}
-      <div>
-        <h2 className="text-xl font-semibold">Transactions</h2>
-        <p className="text-gray-500 text-sm">Your payment history</p>
-      </div>
+      <div className="flex items-center gap-2">
+  {/* Add your icon component here */}
+  <ArrowLeft onClick={onBack} /> {/* or any other icon you want to use */}
+  <div>
+    <h2 className="text-2xl font-bold">Transactions</h2>
+    <p className="text-gray-500 text-semibold">Your payment history</p>
+  </div>
+</div>
 
       {/* Summary */}
       <div className="flex gap-3">
@@ -178,19 +187,24 @@ export default function TransactionsScreen() {
       </div>
 
       {/* Search and Filter */}
-      <div className="flex items-center gap-2 bg-gray-50 border px-3 py-2 rounded-xl">
-        <Search className="w-4 h-4 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Search transactions..."
-          className="flex-1 bg-transparent outline-none text-sm"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        <button onClick={() => setShowFilters(!showFilters)}>
-          <Filter className="w-4 h-4 text-gray-400" />
-        </button>
-      </div>
+      <div className="px-4 flex items-center gap-3">
+  <div className="flex items-center gap-2 flex-1 bg-gray-50 border rounded-xl px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
+    <Search className="w-4 h-4 text-gray-500" />
+    <input
+      type="text"
+      placeholder="Search transactions..."
+      className="flex-1 bg-transparent outline-none text-sm text-gray-700 placeholder-gray-400"
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+    />
+  </div>
+  <button
+    onClick={() => setShowFilters(!showFilters)}
+    className="p-2 border rounded-xl hover:bg-gray-50"
+  >
+    <Filter className="w-5 h-5 text-gray-700" />
+  </button>
+</div>
 
       {/* Filter Panel */}
       {showFilters && (
@@ -278,135 +292,142 @@ export default function TransactionsScreen() {
         </div>
       )}
 
-      {/* Transaction Cards */}
-      <div className="space-y-4">
-        {filteredTransactions.length > 0 ? (
-          filteredTransactions.map((tx) => (
-            <article
-              key={tx.id}
-              className="border rounded-2xl p-4 bg-white shadow-sm space-y-3"
-            >
-              <div className="flex justify-between items-center">
-                {/* Left side: Icon + ID */}
-                <span className="text-sm text-gray-600 font-medium flex items-center gap-1">
-                  <DollarSign className="text-blue-600 w-4 h-4" />
-                  {tx.id}
-                </span>
-
-                {/* Right side: Amount */}
-                <span
-                  className={`text-base font-bold ${
-                    tx.amount.startsWith("+") ? "text-green-600" : "text-black"
-                  }`}
-                >
-                  {tx.amount}
-                </span>
-              </div>
-
+     {/* Transaction Cards */}
+<div className="space-y-4">
+  {filteredTransactions.length > 0 ? (
+    filteredTransactions.map((tx) => (
+      <article
+        key={tx.id}
+        className="border rounded-2xl p-4 bg-white shadow-sm"
+      >
+        {/* Top Section: Icon, ID, Date/Time, Amount, Status */}
+        <div className="flex justify-between items-start">
+          {/* Left side: Icon + ID + Date */}
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 bg-blue-100 rounded ">
+            <DollarSign className="text-blue-600 w-6 h-6 mt-1" />
+            </div>
+            <div>
+              <div className="text-sm font-medium text-gray-800">{tx.id}</div>
               <div className="text-xs text-gray-500">{tx.date}</div>
+            </div>
+          </div>
 
-              {/* Status */}
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">{tx.title}</span>
-                {tx.status === "Completed" && (
-                  <span className="flex items-center text-xs text-green-600 font-semibold gap-1">
-                    <CheckCircle className="w-4 h-4" />
-                    Completed
-                  </span>
-                )}
-                {tx.status === "In Transit" && (
-                  <span className="flex items-center text-xs text-yellow-600 font-semibold gap-1">
-                    <Clock className="w-4 h-4" />
-                    In Transit
-                  </span>
-                )}
-                {tx.status === "Failed" && (
-                  <span className="flex items-center text-xs text-red-600 font-semibold gap-1">
-                    <AlertTriangle className="w-4 h-4" />
-                    Failed
-                  </span>
-                )}
-                {tx.status === "Cancelled" && (
-                  <span className="flex items-center text-xs text-orange-600 font-semibold gap-1">
-                    <RotateCcw className="w-4 h-4" />
-                    Cancelled
-                  </span>
-                )}
-              </div>
-
-              {/* Details in parallel layout */}
-              <div className="space-y-2 mt-3">
-                {tx.route && (
-                  <div className="flex justify-between text-xs">
-                    <span className="text-gray-500">Route:</span>
-                    <span className="text-gray-700 font-medium">{tx.route}</span>
-                  </div>
-                )}
-                
-                {tx.driver && (
-                  <div className="flex justify-between text-xs">
-                    <span className="text-gray-500">Driver:</span>
-                    <span className="text-gray-700">{tx.driver}</span>
-                  </div>
-                )}
-                
-                <div className="flex justify-between text-xs items-center">
-                  <span className="text-gray-500">Payment:</span>
-                  <span className="text-gray-700 flex items-center">
-                    {tx.method === "credit" ? (
-                      <CreditCard className="w-4 h-4 mr-1" />
-                    ) : (
-                      <Banknote className="w-4 h-4 mr-1" />
-                    )}
-                    {tx.payment}
-                  </span>
-                </div>
-              </div>
-
-              {/* Refund Info */}
-              {tx.status === "Cancelled" && tx.refund && (
-                <div className="bg-orange-50 text-orange-700 text-xs p-2 rounded-lg mt-2 border border-orange-200">
-                  <p className="font-semibold">Refund Issued</p>
-                  <p>{tx.refund}</p>
-                </div>
+          {/* Right side: Amount + Status */}
+          <div className="text-right">
+            <div className={`text-base font-bold ${
+              tx.amount.startsWith("+") ? "text-green-600" : "text-black"
+            }`}>
+              {tx.amount}
+            </div>
+            <div className="mt-1">
+              {tx.status === "Completed" && (
+                <span className="flex items-center justify-end text-xs text-green-600 font-semibold gap-1">
+                  <CheckCircle className="w-3 h-3" />
+                  Completed
+                </span>
               )}
-
-              {/* Failure Info */}
-              {tx.status === "Failed" && tx.failure && (
-                <div className="bg-red-50 text-red-700 text-xs p-2 rounded-lg mt-2 border border-red-200">
-                  <p className="font-semibold">Payment Failed</p>
-                  <div className="flex justify-between mt-1">
-                    <span>Reason:</span>
-                    <span>{tx.failure.reason}</span>
-                  </div>
-                  <div className="flex justify-between mt-1">
-                    <span>Attempts:</span>
-                    <span>{tx.failure.attempts}</span>
-                  </div>
-                </div>
+              {tx.status === "In Transit" && (
+                <span className="flex items-center justify-end text-xs text-yellow-600 font-semibold gap-1">
+                  <Clock className="w-3 h-3" />
+                  In Transit
+                </span>
               )}
+              {tx.status === "Failed" && (
+                <span className="flex items-center justify-end text-xs text-red-600 font-semibold gap-1">
+                  <AlertTriangle className="w-3 h-3" />
+                  Failed
+                </span>
+              )}
+              {tx.status === "Cancelled" && (
+                <span className="flex items-center justify-end text-xs text-orange-600 font-semibold gap-1">
+                  <RotateCcw className="w-3 h-3" />
+                  Cancelled
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center justify-between mt-3 gap-2">
-                <button className="flex-1 text-white font-semibold text-sm bg-blue-600 px-4 py-2 rounded-lg flex items-center justify-center gap-2">
-                  <Eye className="w-4 h-4" />
-                  View Details
-                </button>
-                {tx.status === "Failed" && (
-                  <button className="flex-1 text-white bg-green-600 hover:bg-green-700 text-sm font-semibold px-4 py-2 rounded-lg">
-                    Retry
-                  </button>
-                )}
-              </div>
-            </article>
-          ))
-        ) : (
-          <div className="text-center py-8 text-gray-500">
-            No transactions found matching your criteria
+        {/* Title */}
+        <div className="mt-3 text-sm font-medium">{tx.title}</div>
+
+        {/* Details in parallel layout */}
+        <div className="space-y-2 mt-3">
+          {tx.route && (
+            <div className="flex justify-between text-xs">
+              <span className="text-gray-500">Route:</span>
+              <span className="text-gray-700 font-medium">{tx.route}</span>
+            </div>
+          )}
+          
+          {tx.driver && (
+            <div className="flex justify-between text-xs">
+              <span className="text-gray-500">Driver:</span>
+              <span className="text-gray-700">{tx.driver}</span>
+            </div>
+          )}
+          
+          <div className="flex justify-between text-xs items-center">
+            <span className="text-gray-500">Payment:</span>
+            <span className="text-gray-700 flex items-center">
+              {tx.method === "credit" ? (
+                <CreditCard className="w-3 h-3 mr-1" />
+              ) : (
+                <Banknote className="w-3 h-3 mr-1" />
+              )}
+              {tx.payment}
+            </span>
+          </div>
+        </div>
+
+        {/* Refund Info */}
+        {tx.status === "Cancelled" && tx.refund && (
+          <div className="bg-orange-50 text-orange-700 text-xs p-2 rounded-lg mt-2 border border-orange-200">
+            <p className="font-semibold">Refund Issued</p>
+            <p>{tx.refund}</p>
           </div>
         )}
-      </div>
 
+        {/* Failure Info */}
+        {tx.status === "Failed" && tx.failure && (
+          <div className="bg-red-50 text-red-700 text-xs p-2 rounded-lg mt-2 border border-red-200">
+            <p className="font-semibold">Payment Failed</p>
+            <div className="flex justify-between mt-1">
+              <span>Reason:</span>
+              <span>{tx.failure.reason}</span>
+            </div>
+            <div className="flex justify-between mt-1">
+              <span>Attempts:</span>
+              <span>{tx.failure.attempts}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="flex items-center justify-between mt-3 gap-2">
+  <button 
+    className={`text-white font-semibold text-sm bg-blue-600 px-4 py-2 rounded-lg flex items-center justify-center gap-2 ${
+      tx.status === "Failed" ? "w-[70%]" : "w-full"
+    }`}
+  >
+    <Eye className="w-4 h-4" />
+    View Details
+  </button>
+  {tx.status === "Failed" && (
+    <button className="w-[30%] text-white bg-green-600 hover:bg-green-700 text-sm font-semibold px-4 py-2 rounded-lg">
+      Retry
+    </button>
+  )}
+</div>
+      </article>
+    ))
+  ) : (
+    <div className="text-center py-8 text-gray-500">
+      No transactions found matching your criteria
+    </div>
+  )}
+</div>
       {filteredTransactions.length > 0 && (
         <div className="text-center mt-4">
           <button className="text-blue-600 text-sm font-medium hover:underline">
