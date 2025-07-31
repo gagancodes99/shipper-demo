@@ -28,12 +28,12 @@ const BottomNavigation = ({ currentPath, onNavigate }) => {
     { id: 'dashboard', label: 'Dashboard', icon: <Home size={20} />, path: '/dashboard' },
     { id: 'jobs', label: 'Jobs', icon: <ClipboardList size={20} />, path: '/jobs' },
     { id: 'transactions', label: 'Transactions', icon: <CreditCard size={20} />, path: '/transactions' },
-    { id: 'reporting', label: 'Reporting', icon: <BarChart2 size={20} />, path: '/dashboard' },
+    // { id: 'reporting', label: 'Reporting', icon: <BarChart2 size={20} />, path: '/dashboard' },
     { id: 'profile', label: 'Profile', icon: <User size={20} />, path: '/profile' }
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-200 px-4 py-2 z-40 max-w-sm mx-auto ">
+    <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-200 px-0 py-2 z-40 max-w-sm mx-auto ">
       <div className="flex justify-around items-center max-w-md mx-auto">
         {navItems.map((item) => {
           const isActive = currentPath === item.path;
