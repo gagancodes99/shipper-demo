@@ -357,36 +357,19 @@ const VehicleSelectionScreen = ({ onNext, onBack, initialData = {}, jobData }) =
             </label>
           </div>
 
-          {/* Crane Service Option - Show only when crane/hiab method is selected */}
+          {/* Crane/Hiab Service Option - Show only when crane/hiab method is selected */}
           {hasCraneHiabMethod() && (
             <div className="flex items-center p-4 bg-slate-50 rounded-xl border border-slate-200 mt-4">
               <input
                 type="checkbox"
-                id="crane-service"
-                checked={craneHiabOption === 'crane'}
-                onChange={(e) => setCraneHiabOption(e.target.checked ? 'crane' : '')}
+                id="crane-hiab-service"
+                checked={craneHiabOption === 'crane-hiab'}
+                onChange={(e) => setCraneHiabOption(e.target.checked ? 'crane-hiab' : '')}
                 className="mr-3 text-orange-600 focus:ring-orange-500 w-4 h-4 rounded"
               />
-              <label htmlFor="crane-service" className="text-slate-700 flex items-center">
+              <label htmlFor="crane-hiab-service" className="text-slate-700 flex items-center">
                 <span className="text-lg mr-2">🏗️</span>
-                Crane Service
-              </label>
-            </div>
-          )}
-
-          {/* Hiab Service Option - Show only when crane/hiab method is selected */}
-          {hasCraneHiabMethod() && (
-            <div className="flex items-center p-4 bg-slate-50 rounded-xl border border-slate-200 mt-4">
-              <input
-                type="checkbox"
-                id="hiab-service"
-                checked={craneHiabOption === 'hiab'}
-                onChange={(e) => setCraneHiabOption(e.target.checked ? 'hiab' : '')}
-                className="mr-3 text-orange-600 focus:ring-orange-500 w-4 h-4 rounded"
-              />
-              <label htmlFor="hiab-service" className="text-slate-700 flex items-center">
-                <span className="text-lg mr-2">🚛</span>
-                Hiab Service
+                Crane/Hiab Service
               </label>
             </div>
           )}

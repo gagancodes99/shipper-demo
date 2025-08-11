@@ -388,10 +388,10 @@ const GenericConfigModal = ({ isOpen, onClose, data, onSave, title, type }) => {
  * @returns {JSX.Element} Rendered goods details screen
  */
 const GoodsDetailsScreen = ({ 
-  locationType, 
-  locationIndex, 
-  totalLocations,
-  locationData,
+  locationType = 'delivery', 
+  locationIndex = 0, 
+  totalLocations = 1,
+  locationData = {},
   onNext, 
   onBack,
   initialGoods = null,
@@ -415,7 +415,7 @@ const GoodsDetailsScreen = ({
   const locationName = locationData?.address?.address || 'Location';
 
   // NEW: Method options for pickup and delivery
-  const methodOptions = ['Tailgate', 'Loading Dock', 'Hand Carry', 'Crane/Hiab'];
+  const methodOptions = ['Forklift', 'Loading Dock', 'Hand Carry', 'Crane/Hiab'];
 
   const handlePackagingToggle = (type) => {
     // Check if the packaging type is allowed

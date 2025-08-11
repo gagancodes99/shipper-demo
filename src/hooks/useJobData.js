@@ -85,10 +85,10 @@ export const useJobData = () => {
       if (!newJobData.deliveries) newJobData.deliveries = [];
       newJobData.deliveries[currentLocationIndex] = locationData;
       
-      // For multi-pickup: delivery doesn't need goods, skip to pickups
+      // For multi-pickup: delivery doesn't need goods, move to pickups after 1 delivery
       // For single and multi-drop: delivery needs goods
       if (jobData.jobType === 'multi-pickup') {
-        // Skip goods for delivery in multi-pickup, move to pickups
+        // Multi-pickup always has deliveryCount=1, so after first delivery, go to pickups
         setCurrentStep('locations');
         setCurrentLocationType('pickup');
         setCurrentLocationIndex(0);

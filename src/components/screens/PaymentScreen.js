@@ -19,7 +19,7 @@ import { useTransactions } from '../../context/TransactionContext';
  * with error handling and loading states.
  */
 const PaymentScreen = ({ jobData, onNext, onBack }) => {
-  const { addTransaction } = useTransactions();
+  const { createTransaction } = useTransactions();
   
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [cardDetails, setCardDetails] = useState({
@@ -45,7 +45,7 @@ const PaymentScreen = ({ jobData, onNext, onBack }) => {
     setIsProcessing(true);
     setPaymentError('');
 
-    setTimeout(() => {
+    setTimeout(async () => {
       const success = Math.random() > 0.3;
       const jobId = `JOB${Date.now().toString().slice(-6)}`;
       
@@ -53,25 +53,15 @@ const PaymentScreen = ({ jobData, onNext, onBack }) => {
       const transactionData = {
         jobId,
         amount: total,
-        subtotal,
-        gst,
-        serviceCharge: 0,
-        discount: 0,
-        status: success ? 'paid' : 'failed',
-        paymentMethod: paymentMethod === 'card' ? 'visa_card' : paymentMethod,
-        paymentMethodDetails: paymentMethod === 'card' ? {
-          last4: cardDetails.number.slice(-4) || '****',
-          brand: 'Visa'  // Could determine this from card number
-        } : {},
+        status: success ? 'completed' : 'failed',
+        paymentMethod: paymentMethod === 'card' ? 'credit_card' : paymentMethod,
+        cardLast4: cardDetails.number.slice(-4) || '****',
+        cardBrand: 'Visa',
         description: `${jobData.jobType} delivery - ${jobData.vehicle?.name || 'Vehicle'} service`,
-        receiptUrl: success ? `/receipts/receipt_${Date.now()}.pdf` : null,
-        refundStatus: null,
-        jobType: jobData.jobType,
-        vehicleType: jobData.vehicle?.id || 'van',
-        errorMessage: success ? null : 'Payment processing failed'
+        notes: success ? 'Payment processed successfully' : 'Payment processing failed'
       };
 
-      const transaction = addTransaction(transactionData);
+      const transaction = await createTransaction(transactionData);
       
       if (success) {
         // Store job ID and transaction ID for confirmation screen
@@ -205,7 +195,7 @@ const PaymentScreen = ({ jobData, onNext, onBack }) => {
         )}
 
         <button
-         onClick={onNext}
+          onClick={handlePayment}
           disabled={isProcessing || !cardDetails.number || !cardDetails.expiry || !cardDetails.cvv || !cardDetails.name}
           className="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 text-white p-4 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:from-emerald-700 hover:to-emerald-800 transition-all flex items-center justify-center transform hover:scale-105 disabled:transform-none"
         >

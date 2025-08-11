@@ -183,16 +183,32 @@ const BookingFlow = ({ onComplete, onCancel }) => {
         return (
           <LocationCountScreen
             {...commonProps}
+            jobType={jobData.jobType}
             onNext={handleLocationCountNext}
           />
         );
       
       case 'locations':
+        const existingLocationData = currentLocationType === 'pickup' 
+          ? jobData.pickups?.[currentLocationIndex]
+          : jobData.deliveries?.[currentLocationIndex];
+        
+        // For multi-pickup: carry forward delivery date to pickup locations
+        const getPickupDate = () => {
+          if (jobData.jobType === 'multi-pickup' && currentLocationType === 'pickup' && jobData.deliveries?.[0]?.date) {
+            return jobData.deliveries[0].date;
+          }
+          return null;
+        };
+          
         return (
           <LocationDetailsScreen
             {...commonProps}
-            currentLocationIndex={currentLocationIndex}
-            currentLocationType={currentLocationType}
+            locationType={currentLocationType}
+            locationIndex={currentLocationIndex}
+            totalLocations={currentLocationType === 'pickup' ? jobData.pickupCount : jobData.deliveryCount}
+            initialData={existingLocationData}
+            pickupDate={getPickupDate()}
             addresses={addresses}
             onNext={handleLocationNext}
             onShowAddressBook={() => setShowAddressBook(true)}
@@ -201,12 +217,22 @@ const BookingFlow = ({ onComplete, onCancel }) => {
         );
       
       case 'goods':
+        const locationData = currentGoodsType === 'pickup' 
+          ? jobData.pickups?.[currentGoodsIndex] 
+          : jobData.deliveries?.[currentGoodsIndex];
+        
+        const initialGoods = currentGoodsType === 'pickup'
+          ? jobData.pickupGoods?.[currentGoodsIndex]
+          : jobData.deliveryGoods?.[currentGoodsIndex];
+        
         return (
           <GoodsDetailsScreen
             {...commonProps}
-            currentLocationIndex={currentLocationIndex}
-            currentGoodsIndex={currentGoodsIndex}
-            currentGoodsType={currentGoodsType}
+            locationType={currentGoodsType}
+            locationIndex={currentGoodsIndex}
+            totalLocations={currentGoodsType === 'pickup' ? jobData.pickupCount : jobData.deliveryCount}
+            locationData={locationData}
+            initialGoods={initialGoods}
             onNext={handleGoodsNext}
           />
         );
